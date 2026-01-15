@@ -119,6 +119,8 @@
       background-size: cover;
       background-position: 50% 50%;
       filter: saturate(1.20) contrast(1.06);
+      /* if image fails, you’ll still see a nice gradient */
+      background-image: linear-gradient(135deg, rgba(0,208,132,0.45), rgba(255,209,102,0.45));
     }
     .img::after{
       content:"";
@@ -143,6 +145,7 @@
       color:#fff;
       font-weight:1000;
       font-size:12px;
+      z-index:2;
     }
     footer{
       position:relative;
@@ -215,17 +218,22 @@
 
     function render(){
       const lang = langSel.value;
+
       const o = overallProgress(lang);
       overallFill.style.width = o.pct + "%";
       overallTxt.textContent = `${o.pct}% complete (${o.cleared}/${o.total} words cleared)`;
 
       grid.innerHTML = "";
+
       for(const t of THEME_LIST){
         const p = themeProgress(lang, t.id);
+
         const div = document.createElement("div");
         div.className = "tile";
+
+        // IMPORTANT: no inline background-image here (it breaks easily).
         div.innerHTML = `
-          <div class="img" style="background-image:${tileCoverCss(t.id)}"></div>
+          <div class="img"></div>
           <div class="badge">${lang.toUpperCase()}</div>
           <div class="content">
             <div>
@@ -235,9 +243,15 @@
             <div class="small">${p.pct}%</div>
           </div>
         `;
+
+        // ✅ SAFE: set background image via JS
+        const img = div.querySelector(".img");
+        img.style.backgroundImage = tileCoverCss(t.id);
+
         div.addEventListener("click", ()=>{
           location.href = `tower.html?lang=${encodeURIComponent(lang)}&theme=${encodeURIComponent(t.id)}`;
         });
+
         grid.appendChild(div);
       }
     }
