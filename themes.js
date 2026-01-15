@@ -1,4 +1,6 @@
-// themes.js
+// JC Tower Compendium vocab (ES/FR/DE/EN)
+// Prompts are in English; answers are in the chosen language.
+// Accents not required; ñ counts as n.
 
 export const THEME_LIST = [
   { id:"family", title:"Family", emoji:"👨‍👩‍👧‍👦" },
@@ -6,7 +8,7 @@ export const THEME_LIST = [
   { id:"school", title:"School", emoji:"🏫" },
   { id:"yourself", title:"Yourself", emoji:"🙋" },
   { id:"barrio", title:"Barrio", emoji:"🏙️" },
-  { id:"amigos", title:"Amigos", emoji:"🧑‍🤝‍🧑" },
+  { id:"amigos", title:"Friends / Amigos", emoji:"🧑‍🤝‍🧑" },
   { id:"comida", title:"Comida", emoji:"🍽️" },
   { id:"bebida", title:"Bebida", emoji:"🥤" },
   { id:"uniforme", title:"Uniforme escolar", emoji:"👔" },
@@ -14,7 +16,7 @@ export const THEME_LIST = [
   { id:"tiempo", title:"El tiempo", emoji:"🌦️" },
   { id:"hora", title:"La hora", emoji:"🕒" },
   { id:"direcciones", title:"Direcciones", emoji:"🧭" },
-  { id:"asignaturas", title:"Asignaturas", emoji:"📚" }
+  { id:"asignaturas", title:"Asignaturas", emoji:"📚" },
 ];
 
 export function getThemeTitle(themeId){
@@ -58,1507 +60,1000 @@ export function tileCoverCss(themeId){
   return presets[themeId] || coverSvg(emoji);
 }
 
-// ---------- DATASETS ----------
-// Each level is an array of pairs: [English prompt, "spanish1|spanish2"]
-// Spanish is filled now. FR/DE/EN intentionally empty placeholders (wired, safe).
+// ---------- Data format ----------
+// Each item: { lvl: 1..10, en:"", es:[""], fr:[""], de:[""], enAns:[""] }
+// For English mode we accept enAns (usually same as en).
 
-function P(en, esPipe){ return { en, answers: esPipe.split("|") }; }
+const I = (lvl, en, es, fr, de, enAns=null)=> ({
+  lvl, en,
+  es: Array.isArray(es)?es:[es],
+  fr: Array.isArray(fr)?fr:[fr],
+  de: Array.isArray(de)?de:[de],
+  enAns: Array.isArray(enAns)?enAns:(enAns? [enAns] : [en]),
+});
 
-const ES = {
-  family: {
-    1: [
-      P("mother","madre|mamá"),
-      P("father","padre|papá"),
-      P("brother","hermano"),
-      P("sister","hermana"),
-      P("parents","padres"),
-      P("family","familia"),
-      P("son","hijo"),
-      P("daughter","hija")
-    ],
-    2: [
-      P("grandmother","abuela"),
-      P("grandfather","abuelo"),
-      P("grandparents","abuelos"),
-      P("uncle","tío"),
-      P("aunt","tía"),
-      P("cousin (male)","primo"),
-      P("cousin (female)","prima"),
-      P("relative","pariente|familiar")
-    ],
-    3: [
-      P("nephew","sobrino"),
-      P("niece","sobrina"),
-      P("husband","marido|esposo"),
-      P("wife","mujer|esposa"),
-      P("stepfather","padrastro"),
-      P("stepmother","madrastra"),
-      P("to get married","casarse"),
-      P("wedding","boda")
-    ],
-    4: [
-      P("divorce","divorcio"),
-      P("to separate","separarse"),
-      P("to live together","vivir juntos|convivir"),
-      P("to look after","cuidar"),
-      P("to get along","llevarse bien"),
-      P("to argue","discutir"),
-      P("relationship","relación"),
-      P("to meet (someone)","conocer")
-    ],
-    5: [
-      P("to date","salir con"),
-      P("engaged","comprometido|prometido"),
-      P("fiancé","prometido"),
-      P("fiancée","prometida"),
-      P("to propose","pedir matrimonio|proponer matrimonio"),
-      P("to break up","romper"),
-      P("to forgive","perdonar"),
-      P("to trust","confiar")
-    ],
-    6: [
-      P("in-laws","suegros"),
-      P("mother-in-law","suegra"),
-      P("father-in-law","suegro"),
-      P("brother-in-law","cuñado"),
-      P("sister-in-law","cuñada"),
-      P("to adopt","adoptar"),
-      P("adoption","adopción"),
-      P("pregnant","embarazada")
-    ],
-    7: [
-      P("to give birth","dar a luz"),
-      P("childhood","infancia"),
-      P("teenager","adolescente"),
-      P("adult","adulto"),
-      P("elderly person","anciano|mayor"),
-      P("generation","generación"),
-      P("family tree","árbol genealógico"),
-      P("inheritance","herencia")
-    ],
-    8: [
-      P("to take after","parecerse a"),
-      P("to depend on","depender de"),
-      P("to set rules","poner reglas|establecer reglas"),
-      P("to allow","permitir"),
-      P("to forbid","prohibir"),
-      P("to punish","castigar"),
-      P("to obey","obedecer"),
-      P("to behave","portarse")
-    ],
-    9: [
-      P("to be grounded","estar castigado"),
-      P("discussion","discusión"),
-      P("to compromise","llegar a un acuerdo|comprometerse"),
-      P("support network","red de apoyo"),
-      P("to seek help","buscar ayuda"),
-      P("to cope","afrontar"),
-      P("to overcome","superar"),
-      P("mutual respect","respeto mutuo")
-    ],
-    10: [
-      P("family breakdown","ruptura familiar"),
-      P("dysfunctional family","familia disfuncional"),
-      P("to mediate","mediar"),
-      P("mediation","mediación"),
-      P("foster family","familia de acogida"),
-      P("to be estranged","estar distanciado"),
-      P("to maintain contact","mantener el contacto"),
-      P("to cut ties","romper lazos")
-    ]
-  },
+// ---------------- FAMILY (includes your ES answers; FR/DE equivalents added) ----------------
+const FAMILY = [
+  // Level 1 (core)
+  I(1,"mother",["madre","mamá"],["mère","maman"],["Mutter"],["mother"]),
+  I(1,"father",["padre","papá"],["père","papa"],["Vater"],["father"]),
+  I(1,"brother","hermano","frère","Bruder","brother"),
+  I(1,"sister","hermana","sœur","Schwester","sister"),
+  I(1,"parents","padres","parents","Eltern","parents"),
+  I(1,"family","familia","famille","Familie","family"),
+  I(1,"son","hijo","fils","Sohn","son"),
+  I(1,"daughter","hija","fille","Tochter","daughter"),
+  I(1,"children","hijos","enfants","Kinder","children"),
+  I(1,"grandmother","abuela","grand-mère","Großmutter","grandmother"),
+  I(1,"grandfather","abuelo","grand-père","Großvater","grandfather"),
+  I(1,"grandparents","abuelos","grands-parents","Großeltern","grandparents"),
 
-  daily: {
-    1: [
-      P("to wake up","despertarse"),
-      P("to get up","levantarse"),
-      P("to have breakfast","desayunar"),
-      P("to go to school","ir al colegio|ir a la escuela"),
-      P("to have lunch","almorzar|comer"),
-      P("to do homework","hacer los deberes"),
-      P("to have dinner","cenar"),
-      P("to go to bed","acostarse")
-    ],
-    2: [
-      P("to have a shower","ducharse"),
-      P("to brush my teeth","lavarse los dientes"),
-      P("to get dressed","vestirse"),
-      P("to leave home","salir de casa"),
-      P("to arrive","llegar"),
-      P("to be late","llegar tarde"),
-      P("to be early","llegar temprano"),
-      P("to take the bus","coger el autobús|tomar el autobús")
-    ],
-    3: [
-      P("to study","estudiar"),
-      P("to revise","repasar"),
-      P("to listen to music","escuchar música"),
-      P("to watch TV","ver la tele|ver televisión"),
-      P("to play video games","jugar a los videojuegos"),
-      P("to help at home","ayudar en casa"),
-      P("to tidy my room","ordenar mi habitación"),
-      P("to relax","relajarse")
-    ],
-    4: [
-      P("to set an alarm","poner la alarma"),
-      P("to take a break","tomar un descanso"),
-      P("to go for a walk","dar un paseo"),
-      P("to meet friends","quedar con amigos"),
-      P("to chat online","chatear"),
-      P("to do chores","hacer tareas"),
-      P("to be tired","estar cansado"),
-      P("to be exhausted","estar agotado")
-    ],
-    5: [
-      P("to hurry up","darse prisa"),
-      P("to miss the bus","perder el autobús"),
-      P("to pack my bag","preparar la mochila"),
-      P("to have a snack","merendar"),
-      P("to practice sport","practicar deporte"),
-      P("to train","entrenar"),
-      P("to go shopping","ir de compras"),
-      P("to cook","cocinar")
-    ],
-    6: [
-      P("to do the dishes","lavar los platos"),
-      P("to clean","limpiar"),
-      P("to sweep","barrer"),
-      P("to vacuum","pasar la aspiradora"),
-      P("to take out the rubbish","sacar la basura"),
-      P("to walk the dog","pasear al perro"),
-      P("to iron","planchar"),
-      P("to fold clothes","doblar la ropa")
-    ],
-    7: [
-      P("to fall asleep","dormirse"),
-      P("to oversleep","quedarse dormido"),
-      P("to stay up late","acostarse tarde"),
-      P("to get bored","aburrirse"),
-      P("to be busy","estar ocupado"),
-      P("to be in a hurry","tener prisa"),
-      P("to waste time","perder el tiempo"),
-      P("to save time","ahorrar tiempo")
-    ],
-    8: [
-      P("to focus","concentrarse"),
-      P("to get distracted","distraerse"),
-      P("to improve","mejorar"),
-      P("to make progress","progresar"),
-      P("to set goals","ponerse metas"),
-      P("to keep a routine","mantener una rutina"),
-      P("to be responsible","ser responsable"),
-      P("to be organised","ser organizado")
-    ],
-    9: [
-      P("to manage my time","gestionar mi tiempo"),
-      P("to balance","equilibrar"),
-      P("to feel stressed","sentirse estresado"),
-      P("to calm down","calmarse"),
-      P("to make a schedule","hacer un horario"),
-      P("to postpone","aplazar"),
-      P("to finish","terminar"),
-      P("to hand in homework","entregar los deberes")
-    ],
-    10: [
-      P("to be motivated","estar motivado"),
-      P("to stay consistent","ser constante"),
-      P("to make an effort","esforzarse"),
-      P("to be proud","estar orgulloso"),
-      P("to learn from mistakes","aprender de los errores"),
-      P("to be independent","ser independiente"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to set priorities","establecer prioridades")
-    ]
-  },
+  // Level 2 (extended)
+  I(2,"uncle","tío","oncle","Onkel","uncle"),
+  I(2,"aunt","tía","tante","Tante","aunt"),
+  I(2,"cousin (male)","primo","cousin","Cousin","cousin"),
+  I(2,"cousin (female)","prima","cousine","Cousine","cousin"),
+  I(2,"nephew","sobrino","neveu","Neffe","nephew"),
+  I(2,"niece","sobrina","nièce","Nichte","niece"),
+  I(2,"husband",["marido","esposo"],"mari","Ehemann","husband"),
+  I(2,"wife",["mujer","esposa"],"femme","Ehefrau","wife"),
+  I(2,"couple","pareja","couple","Paar","couple"),
+  I(2,"relative",["pariente","familiar"],"parent","Verwandter","relative"),
+  I(2,"stepfather","padrastro","beau-père","Stiefvater","stepfather"),
+  I(2,"stepmother","madrastra","belle-mère","Stiefmutter","stepmother"),
 
-  school: {
-    1: [
-      P("school","la escuela|el colegio"),
-      P("classroom","la clase|el aula"),
-      P("teacher","el profesor|la profesora"),
-      P("student","el alumno|la alumna"),
-      P("homework","los deberes"),
-      P("book","el libro"),
-      P("pen","el bolígrafo"),
-      P("exam","el examen")
-    ],
-    2: [
-      P("notebook","el cuaderno"),
-      P("pencil","el lápiz"),
-      P("rubber / eraser","la goma"),
-      P("ruler","la regla"),
-      P("bag","la mochila"),
-      P("break / recess","el recreo"),
-      P("timetable","el horario"),
-      P("library","la biblioteca")
-    ],
-    3: [
-      P("to learn","aprender"),
-      P("to study","estudiar"),
-      P("to answer","contestar"),
-      P("to ask a question","hacer una pregunta"),
-      P("to explain","explicar"),
-      P("to repeat","repetir"),
-      P("to understand","entender"),
-      P("to help","ayudar")
-    ],
-    4: [
-      P("to pass","aprobar"),
-      P("to fail","suspender"),
-      P("mark / grade","la nota"),
-      P("test","la prueba"),
-      P("project","el proyecto"),
-      P("presentation","la presentación"),
-      P("group work","el trabajo en grupo"),
-      P("to practice","practicar")
-    ],
-    5: [
-      P("rules","las reglas"),
-      P("to behave","portarse"),
-      P("to be on time","llegar a tiempo"),
-      P("to be late","llegar tarde"),
-      P("detention","el castigo"),
-      P("headteacher","el director|la directora"),
-      P("canteen","el comedor"),
-      P("sports hall","el gimnasio")
-    ],
-    6: [
-      P("optional subject","la optativa"),
-      P("compulsory","obligatorio"),
-      P("extracurricular","extraescolar"),
-      P("school trip","la excursión"),
-      P("to sign up","apuntarse"),
-      P("to revise","repasar"),
-      P("to hand in","entregar"),
-      P("deadline","la fecha límite")
-    ],
-    7: [
-      P("to concentrate","concentrarse"),
-      P("to get distracted","distraerse"),
-      P("to take notes","tomar apuntes"),
-      P("to highlight","subrayar"),
-      P("to correct","corregir"),
-      P("to make mistakes","cometer errores"),
-      P("to improve","mejorar"),
-      P("to participate","participar")
-    ],
-    8: [
-      P("pressure","la presión"),
-      P("stress","el estrés"),
-      P("to be nervous","estar nervioso"),
-      P("to gain confidence","ganar confianza"),
-      P("to set goals","ponerse metas"),
-      P("to make an effort","esforzarse"),
-      P("to succeed","tener éxito"),
-      P("to struggle","tener dificultades")
-    ],
-    9: [
-      P("discipline","la disciplina"),
-      P("responsibility","la responsabilidad"),
-      P("punctuality","la puntualidad"),
-      P("respect","el respeto"),
-      P("to motivate","motivar"),
-      P("to encourage","animar"),
-      P("to advise","aconsejar"),
-      P("to support","apoyar")
-    ],
-    10: [
-      P("future plans","los planes de futuro"),
-      P("career","la carrera"),
-      P("skills","las habilidades"),
-      P("to choose","elegir"),
-      P("to decide","decidir"),
-      P("to prepare","prepararse"),
-      P("to manage time","gestionar el tiempo"),
-      P("to take responsibility","asumir la responsabilidad")
-    ]
-  },
+  // Level 3+
+  I(3,"stepson","hijastro","beau-fils","Stiefsohn","stepson"),
+  I(3,"stepdaughter","hijastra","belle-fille","Stieftochter","stepdaughter"),
+  I(3,"half-brother",["medio hermano","hermanastro"],"demi-frère","Halbbruder","half-brother"),
+  I(3,"half-sister",["media hermana","hermanastra"],"demi-sœur","Halbschwester","half-sister"),
+  I(3,"only child",["hijo único","hija única"],"enfant unique","Einzelkind","only child"),
+  I(3,"twins","gemelos","jumeaux","Zwillinge","twins"),
+  I(3,"single-parent family","familia monoparental","famille monoparentale","alleinerziehende Familie","single-parent family"),
+  I(3,"to get married","casarse","se marier","heiraten","to get married"),
+  I(3,"wedding","boda","mariage","Hochzeit","wedding"),
+  I(3,"divorce","divorcio","divorce","Scheidung","divorce"),
+  I(3,"to separate","separarse","se séparer","sich trennen","to separate"),
+  I(3,"to live together",["vivir juntos","convivir"],"vivre ensemble","zusammenleben","to live together"),
 
-  yourself: {
-    1: [
-      P("my name is…","me llamo"),
-      P("I am … years old","tengo … años"),
-      P("I live in…","vivo en"),
-      P("I am from…","soy de"),
-      P("I have","tengo"),
-      P("I like","me gusta"),
-      P("I don't like","no me gusta"),
-      P("hobbies","las aficiones")
-    ],
-    2: [
-      P("tall","alto"),
-      P("short","bajo"),
-      P("hair","el pelo"),
-      P("eyes","los ojos"),
-      P("brown","marrón"),
-      P("blonde","rubio"),
-      P("friendly","simpático"),
-      P("shy","tímido")
-    ],
-    3: [
-      P("funny","divertido"),
-      P("hard-working","trabajador"),
-      P("lazy","perezoso"),
-      P("sporty","deportista"),
-      P("honest","honesto"),
-      P("kind","amable"),
-      P("confident","seguro de sí mismo"),
-      P("creative","creativo")
-    ],
-    4: [
-      P("to get on with","llevarse bien con"),
-      P("to argue","discutir"),
-      P("to help","ayudar"),
-      P("to share","compartir"),
-      P("to respect","respetar"),
-      P("to trust","confiar"),
-      P("strengths","los puntos fuertes"),
-      P("weaknesses","los puntos débiles")
-    ],
-    5: [
-      P("to improve","mejorar"),
-      P("to change","cambiar"),
-      P("to try","intentar"),
-      P("to succeed","tener éxito"),
-      P("to fail","fracasar"),
-      P("to be motivated","estar motivado"),
-      P("to be stressed","estar estresado"),
-      P("to relax","relajarse")
-    ],
-    6: [
-      P("future plans","los planes de futuro"),
-      P("I want to be…","quiero ser"),
-      P("job","el trabajo"),
-      P("career","la carrera"),
-      P("university","la universidad"),
-      P("training","la formación"),
-      P("to travel","viajar"),
-      P("to learn languages","aprender idiomas")
-    ],
-    7: [
-      P("values","los valores"),
-      P("responsibility","la responsabilidad"),
-      P("independence","la independencia"),
-      P("to make an effort","esforzarse"),
-      P("to set goals","ponerse metas"),
-      P("to take decisions","tomar decisiones"),
-      P("to take risks","asumir riesgos"),
-      P("to be proud","estar orgulloso")
-    ],
-    8: [
-      P("mental health","la salud mental"),
-      P("well-being","el bienestar"),
-      P("to feel anxious","sentirse ansioso"),
-      P("to calm down","calmarse"),
-      P("to seek help","buscar ayuda"),
-      P("support","el apoyo"),
-      P("to cope","afrontar"),
-      P("to overcome","superar")
-    ],
-    9: [
-      P("identity","la identidad"),
-      P("self-esteem","la autoestima"),
-      P("to compare myself","compararme"),
-      P("social media","las redes sociales"),
-      P("to disconnect","desconectar"),
-      P("to focus","concentrarse"),
-      P("to keep balance","mantener el equilibrio"),
-      P("to set boundaries","poner límites")
-    ],
-    10: [
-      P("to be resilient","ser resiliente"),
-      P("to learn from mistakes","aprender de los errores"),
-      P("to be consistent","ser constante"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to keep improving","seguir mejorando"),
-      P("to be grateful","estar agradecido"),
-      P("to support others","apoyar a los demás"),
-      P("personal growth","el crecimiento personal")
-    ]
-  },
+  I(4,"to look after","cuidar","s'occuper de","sich kümmern um","to look after"),
+  I(4,"household chores","tareas domésticas","tâches ménagères","Hausarbeit","household chores"),
+  I(4,"to argue","discutir","se disputer","streiten","to argue"),
+  I(4,"to get along","llevarse bien","bien s'entendre","sich gut verstehen","to get along"),
+  I(4,"relationship","relación","relation","Beziehung","relationship"),
+  I(4,"to date","salir con","sortir avec","ausgehen mit","to date"),
 
-  barrio: {
-    1: [
-      P("town","el pueblo|la ciudad"),
-      P("street","la calle"),
-      P("square","la plaza"),
-      P("park","el parque"),
-      P("shop","la tienda"),
-      P("cinema","el cine"),
-      P("supermarket","el supermercado"),
-      P("school","la escuela|el colegio")
-    ],
-    2: [
-      P("bakery","la panadería"),
-      P("pharmacy","la farmacia"),
-      P("bank","el banco"),
-      P("post office","correos"),
-      P("sports centre","el polideportivo"),
-      P("swimming pool","la piscina"),
-      P("train station","la estación de tren"),
-      P("bus stop","la parada de autobús")
-    ],
-    3: [
-      P("quiet","tranquilo"),
-      P("noisy","ruidoso"),
-      P("crowded","lleno"),
-      P("clean","limpio"),
-      P("dirty","sucio"),
-      P("safe","seguro"),
-      P("dangerous","peligroso"),
-      P("modern","moderno")
-    ],
-    4: [
-      P("there is / there are","hay"),
-      P("near","cerca"),
-      P("far","lejos"),
-      P("next to","al lado de"),
-      P("opposite","enfrente de"),
-      P("between","entre"),
-      P("in the centre","en el centro"),
-      P("on the outskirts","en las afueras")
-    ],
-    5: [
-      P("traffic","el tráfico"),
-      P("pollution","la contaminación"),
-      P("noise","el ruido"),
-      P("green spaces","las zonas verdes"),
-      P("public transport","el transporte público"),
-      P("to improve","mejorar"),
-      P("to reduce","reducir"),
-      P("to protect","proteger")
-    ],
-    6: [
-      P("neighbourhood","el barrio"),
-      P("town hall","el ayuntamiento"),
-      P("tourists","los turistas"),
-      P("to visit","visitar"),
-      P("to go out","salir"),
-      P("to hang out","quedar"),
-      P("to meet friends","quedar con amigos"),
-      P("to have fun","divertirse")
-    ],
-    7: [
-      P("advantages","las ventajas"),
-      P("disadvantages","las desventajas"),
-      P("quality of life","la calidad de vida"),
-      P("to complain","quejarse"),
-      P("to recommend","recomendar"),
-      P("to move house","mudarse"),
-      P("to feel at home","sentirse como en casa"),
-      P("community","la comunidad")
-    ],
-    8: [
-      P("to recycle","reciclar"),
-      P("rubbish","la basura"),
-      P("to pick up litter","recoger basura"),
-      P("to save energy","ahorrar energía"),
-      P("to use less water","usar menos agua"),
-      P("to plant trees","plantar árboles"),
-      P("to raise awareness","concienciar"),
-      P("to take action","actuar")
-    ],
-    9: [
-      P("housing","la vivienda"),
-      P("rent","el alquiler"),
-      P("to afford","permitirse"),
-      P("to be expensive","ser caro"),
-      P("to be cheap","ser barato"),
-      P("to feel unsafe","sentirse inseguro"),
-      P("to report","denunciar"),
-      P("support network","red de apoyo")
-    ],
-    10: [
-      P("urban planning","la planificación urbana"),
-      P("sustainable","sostenible"),
-      P("to reduce emissions","reducir emisiones"),
-      P("to improve transport","mejorar el transporte"),
-      P("to create jobs","crear empleo"),
-      P("to invest","invertir"),
-      P("to develop","desarrollar"),
-      P("future of the city","el futuro de la ciudad")
-    ]
-  },
+  I(5,"engaged",["comprometido","prometido"],"fiancé","verlobt","engaged"),
+  I(5,"fiancé","prometido","fiancé","Verlobter","fiancé"),
+  I(5,"fiancée","prometida","fiancée","Verlobte","fiancée"),
+  I(5,"to propose",["pedir matrimonio","proponer matrimonio"],"demander en mariage","einen Antrag machen","to propose"),
+  I(5,"to break up","romper","rompre","sich trennen","to break up"),
+  I(5,"to forgive","perdonar","pardonner","verzeihen","to forgive"),
 
-  amigos: {
-    1: [
-      P("friend","amigo|amiga"),
-      P("best friend","mejor amigo|mejor amiga"),
-      P("group of friends","grupo de amigos"),
-      P("to meet","quedar"),
-      P("to talk","hablar"),
-      P("to laugh","reír"),
-      P("to help","ayudar"),
-      P("to share","compartir")
-    ],
-    2: [
-      P("kind","amable"),
-      P("funny","divertido"),
-      P("friendly","simpático"),
-      P("loyal","leal"),
-      P("honest","honesto"),
-      P("shy","tímido"),
-      P("confident","seguro de sí mismo"),
-      P("supportive","comprensivo")
-    ],
-    3: [
-      P("to get on well","llevarse bien"),
-      P("to fall out","llevarse mal"),
-      P("to argue","discutir"),
-      P("to make up","reconciliarse"),
-      P("to trust","confiar"),
-      P("to respect","respetar"),
-      P("to forgive","perdonar"),
-      P("to apologise","pedir perdón")
-    ],
-    4: [
-      P("to keep in touch","mantener el contacto"),
-      P("to message","mandar un mensaje"),
-      P("social media","las redes sociales"),
-      P("to hang out","quedar"),
-      P("to invite","invitar"),
-      P("to refuse","rechazar"),
-      P("to include","incluir"),
-      P("to exclude","excluir")
-    ],
-    5: [
-      P("peer pressure","la presión de grupo"),
-      P("to fit in","encajar"),
-      P("to feel left out","sentirse excluido"),
-      P("to be bullied","ser acosado"),
-      P("bullying","el acoso"),
-      P("to support","apoyar"),
-      P("to report","denunciar"),
-      P("to seek help","buscar ayuda")
-    ],
-    6: [
-      P("to have a good influence","tener buena influencia"),
-      P("to have a bad influence","tener mala influencia"),
-      P("to encourage","animar"),
-      P("to motivate","motivar"),
-      P("to advise","aconsejar"),
-      P("to listen","escuchar"),
-      P("to understand","entender"),
-      P("to disagree","no estar de acuerdo")
-    ],
-    7: [
-      P("trust","la confianza"),
-      P("respect","el respeto"),
-      P("boundaries","los límites"),
-      P("to set boundaries","poner límites"),
-      P("to be sincere","ser sincero"),
-      P("to be jealous","tener celos"),
-      P("jealousy","los celos"),
-      P("to resolve conflicts","resolver conflictos")
-    ],
-    8: [
-      P("to be reliable","ser fiable"),
-      P("to be thoughtful","ser atento"),
-      P("to be patient","ser paciente"),
-      P("to be mature","ser maduro"),
-      P("to compromise","llegar a un acuerdo"),
-      P("to accept differences","aceptar diferencias"),
-      P("to respect opinions","respetar opiniones"),
-      P("to be open-minded","ser de mente abierta")
-    ],
-    9: [
-      P("friendship","la amistad"),
-      P("to value","valorar"),
-      P("to appreciate","apreciar"),
-      P("to take care of","cuidar de"),
-      P("to support each other","apoyarse"),
-      P("to stand up for","defender"),
-      P("to be there for someone","estar para alguien"),
-      P("to be grateful","estar agradecido")
-    ],
-    10: [
-      P("to be resilient","ser resiliente"),
-      P("to learn from mistakes","aprender de los errores"),
-      P("to grow as a person","crecer como persona"),
-      P("to choose good friends","elegir buenos amigos"),
-      P("to avoid toxic people","evitar gente tóxica"),
-      P("to maintain contact","mantener el contacto"),
-      P("to rebuild trust","reconstruir la confianza"),
-      P("healthy friendship","amistad sana")
-    ]
-  },
+  I(6,"in-laws","suegros","beaux-parents","Schwiegereltern","in-laws"),
+  I(6,"mother-in-law","suegra","belle-mère","Schwiegermutter","mother-in-law"),
+  I(6,"father-in-law","suegro","beau-père","Schwiegervater","father-in-law"),
+  I(6,"brother-in-law","cuñado","beau-frère","Schwager","brother-in-law"),
+  I(6,"sister-in-law","cuñada","belle-sœur","Schwägerin","sister-in-law"),
+  I(6,"to adopt","adoptar","adopter","adoptieren","to adopt"),
 
-  comida: {
-    1: [
-      P("bread","pan"),
-      P("water","agua"),
-      P("milk","leche"),
-      P("cheese","queso"),
-      P("eggs","huevos"),
-      P("chicken","pollo"),
-      P("rice","arroz"),
-      P("fruit","fruta")
-    ],
-    2: [
-      P("vegetables","verduras"),
-      P("apple","manzana"),
-      P("banana","plátano"),
-      P("orange","naranja"),
-      P("tomato","tomate"),
-      P("potato","patata"),
-      P("salad","ensalada"),
-      P("fish","pescado")
-    ],
-    3: [
-      P("meat","carne"),
-      P("ham","jamón"),
-      P("sausages","salchichas"),
-      P("pasta","pasta"),
-      P("soup","sopa"),
-      P("sandwich","bocadillo"),
-      P("breakfast","desayuno"),
-      P("lunch","almuerzo|comida")
-    ],
-    4: [
-      P("dinner","cena"),
-      P("snack","merienda"),
-      P("dessert","postre"),
-      P("cake","tarta"),
-      P("ice cream","helado"),
-      P("chocolate","chocolate"),
-      P("sugar","azúcar"),
-      P("salt","sal")
-    ],
-    5: [
-      P("healthy","saludable"),
-      P("unhealthy","poco saludable"),
-      P("to eat","comer"),
-      P("to cook","cocinar"),
-      P("to fry","freír"),
-      P("to boil","hervir"),
-      P("to bake","hornear"),
-      P("to order","pedir")
-    ],
-    6: [
-      P("menu","el menú"),
-      P("starter","el primer plato"),
-      P("main course","el plato principal"),
-      P("bill","la cuenta"),
-      P("waiter","el camarero|la camarera"),
-      P("to recommend","recomendar"),
-      P("to be hungry","tener hambre"),
-      P("to be thirsty","tener sed")
-    ],
-    7: [
-      P("allergy","la alergia"),
-      P("vegetarian","vegetariano"),
-      P("vegan","vegano"),
-      P("gluten-free","sin gluten"),
-      P("to try","probar"),
-      P("to prefer","preferir"),
-      P("to avoid","evitar"),
-      P("ingredients","los ingredientes")
-    ],
-    8: [
-      P("to gain weight","engordar"),
-      P("to lose weight","adelgazar"),
-      P("diet","la dieta"),
-      P("balanced diet","dieta equilibrada"),
-      P("to be in shape","estar en forma"),
-      P("to exercise","hacer ejercicio"),
-      P("junk food","comida basura"),
-      P("fast food","comida rápida")
-    ],
-    9: [
-      P("to reduce sugar","reducir el azúcar"),
-      P("to drink water","beber agua"),
-      P("to eat more vegetables","comer más verduras"),
-      P("to cook at home","cocinar en casa"),
-      P("to control portions","controlar las porciones"),
-      P("to read labels","leer etiquetas"),
-      P("healthier choice","opción más saludable"),
-      P("to take care","cuidarse")
-    ],
-    10: [
-      P("food waste","desperdicio de comida"),
-      P("to waste food","tirar comida"),
-      P("to recycle","reciclar"),
-      P("local products","productos locales"),
-      P("seasonal food","comida de temporada"),
-      P("to be sustainable","ser sostenible"),
-      P("to plan meals","planificar comidas"),
-      P("to save money","ahorrar dinero")
-    ]
-  },
+  I(7,"family tree","árbol genealógico","arbre généalogique","Stammbaum","family tree"),
+  I(7,"to inherit","heredar","hériter","erben","to inherit"),
+  I(7,"inheritance","herencia","héritage","Erbe","inheritance"),
+  I(7,"to take after","parecerse a","ressembler à","ähneln","to take after"),
+  I(7,"to depend on","depender de","dépendre de","abhängen von","to depend on"),
+  I(7,"generation","generación","génération","Generation","generation"),
 
-  bebida: {
-    1: [
-      P("water","agua"),
-      P("milk","leche"),
-      P("juice","zumo"),
-      P("orange juice","zumo de naranja"),
-      P("tea","té"),
-      P("coffee","café"),
-      P("hot chocolate","chocolate caliente"),
-      P("drink","bebida")
-    ],
-    2: [
-      P("sparkling water","agua con gas"),
-      P("still water","agua sin gas"),
-      P("lemonade","limonada"),
-      P("cola","cola"),
-      P("smoothie","batido"),
-      P("milkshake","batido de leche"),
-      P("to drink","beber"),
-      P("glass","vaso")
-    ],
-    3: [
-      P("bottle","botella"),
-      P("cup","taza"),
-      P("ice","hielo"),
-      P("with ice","con hielo"),
-      P("without sugar","sin azúcar"),
-      P("sweet","dulce"),
-      P("bitter","amargo"),
-      P("fresh","fresco")
-    ],
-    4: [
-      P("to be thirsty","tener sed"),
-      P("to be dehydrated","estar deshidratado"),
-      P("to stay hydrated","mantenerse hidratado"),
-      P("to choose","elegir"),
-      P("to prefer","preferir"),
-      P("healthy","saludable"),
-      P("unhealthy","poco saludable"),
-      P("ingredients","los ingredientes")
-    ],
-    5: [
-      P("energy drink","bebida energética"),
-      P("caffeine","cafeína"),
-      P("to affect sleep","afectar al sueño"),
-      P("to sleep badly","dormir mal"),
-      P("to reduce","reducir"),
-      P("to avoid","evitar"),
-      P("to moderate","moderar"),
-      P("habit","hábito")
-    ],
-    6: [
-      P("to order a drink","pedir una bebida"),
-      P("menu","el menú"),
-      P("bill","la cuenta"),
-      P("waiter","el camarero|la camarera"),
-      P("to recommend","recomendar"),
-      P("to try","probar"),
-      P("flavour","sabor"),
-      P("to taste like","saber a")
-    ],
-    7: [
-      P("to bring a bottle","traer una botella"),
-      P("reusable bottle","botella reutilizable"),
-      P("plastic","plástico"),
-      P("to recycle","reciclar"),
-      P("waste","residuos"),
-      P("environment","medio ambiente"),
-      P("to protect","proteger"),
-      P("to reduce plastic","reducir el plástico")
-    ],
-    8: [
-      P("to improve health","mejorar la salud"),
-      P("to drink more water","beber más agua"),
-      P("to cut down","reducir"),
-      P("to feel better","sentirse mejor"),
-      P("to have energy","tener energía"),
-      P("to feel tired","sentirse cansado"),
-      P("balanced","equilibrado"),
-      P("well-being","bienestar")
-    ],
-    9: [
-      P("to set goals","ponerse metas"),
-      P("to track habits","seguir hábitos"),
-      P("to be consistent","ser constante"),
-      P("to make an effort","esforzarse"),
-      P("to take care","cuidarse"),
-      P("to manage time","gestionar el tiempo"),
-      P("to plan","planear"),
-      P("to prepare","preparar")
-    ],
-    10: [
-      P("responsibility","responsabilidad"),
-      P("to make good choices","tomar buenas decisiones"),
-      P("to influence others","influir en los demás"),
-      P("to be a role model","ser un ejemplo"),
-      P("to be aware","ser consciente"),
-      P("to stay healthy","mantenerse sano"),
-      P("to maintain balance","mantener el equilibrio"),
-      P("long-term","a largo plazo")
-    ]
-  },
+  I(8,"to set rules",["poner reglas","establecer reglas"],"fixer des règles","Regeln aufstellen","to set rules"),
+  I(8,"to allow","permitir","permettre","erlauben","to allow"),
+  I(8,"to forbid","prohibir","interdire","verbieten","to forbid"),
+  I(8,"to punish","castigar","punir","bestrafen","to punish"),
+  I(8,"to behave","portarse","se comporter","sich benehmen","to behave"),
+  I(8,"to be grounded","estar castigado","être puni","Hausarrest haben","to be grounded"),
 
-  uniforme: {
-    1: [
-      P("uniform","el uniforme"),
-      P("shirt","la camisa"),
-      P("trousers","los pantalones"),
-      P("skirt","la falda"),
-      P("tie","la corbata"),
-      P("shoes","los zapatos"),
-      P("jumper","el jersey"),
-      P("blazer","la chaqueta")
-    ],
-    2: [
-      P("socks","los calcetines"),
-      P("coat","el abrigo"),
-      P("raincoat","el impermeable"),
-      P("sports uniform","el uniforme deportivo"),
-      P("PE kit","la ropa de educación física"),
-      P("to wear","llevar"),
-      P("to take off","quitarse"),
-      P("to put on","ponerse")
-    ],
-    3: [
-      P("comfortable","cómodo"),
-      P("uncomfortable","incómodo"),
-      P("smart / tidy","elegante"),
-      P("messy","desordenado"),
-      P("clean","limpio"),
-      P("dirty","sucio"),
-      P("strict","estricto"),
-      P("rules","las reglas")
-    ],
-    4: [
-      P("to allow","permitir"),
-      P("to forbid","prohibir"),
-      P("jewellery","las joyas"),
-      P("make-up","el maquillaje"),
-      P("piercing","el piercing"),
-      P("hair","el pelo"),
-      P("to dye hair","teñirse el pelo"),
-      P("to follow rules","seguir las reglas")
-    ],
-    5: [
-      P("advantages","las ventajas"),
-      P("disadvantages","las desventajas"),
-      P("to save money","ahorrar dinero"),
-      P("to feel equal","sentirse igual"),
-      P("to show identity","mostrar identidad"),
-      P("to express myself","expresarme"),
-      P("to fit in","encajar"),
-      P("to stand out","destacar")
-    ],
-    6: [
-      P("to be proud of","estar orgulloso de"),
-      P("school image","la imagen del colegio"),
-      P("discipline","la disciplina"),
-      P("respect","el respeto"),
-      P("responsibility","la responsabilidad"),
-      P("to be punished","ser castigado"),
-      P("detention","el castigo"),
-      P("to complain","quejarse")
-    ],
-    7: [
-      P("to compromise","llegar a un acuerdo"),
-      P("to discuss","discutir"),
-      P("to agree","estar de acuerdo"),
-      P("to disagree","no estar de acuerdo"),
-      P("to change rules","cambiar reglas"),
-      P("to improve","mejorar"),
-      P("to propose","proponer"),
-      P("opinion","la opinión")
-    ],
-    8: [
-      P("to be comfortable","estar cómodo"),
-      P("to feel confident","sentirse seguro"),
-      P("to reduce bullying","reducir el acoso"),
-      P("bullying","el acoso"),
-      P("peer pressure","la presión de grupo"),
-      P("to feel included","sentirse incluido"),
-      P("to feel excluded","sentirse excluido"),
-      P("to respect differences","respetar diferencias")
-    ],
-    9: [
-      P("to take care of clothes","cuidar la ropa"),
-      P("to wash","lavar"),
-      P("to iron","planchar"),
-      P("to keep tidy","mantener ordenado"),
-      P("to be organised","ser organizado"),
-      P("to prepare","preparar"),
-      P("to pack my bag","preparar la mochila"),
-      P("routine","la rutina")
-    ],
-    10: [
-      P("school policy","la política del colegio"),
-      P("to represent the school","representar el colegio"),
-      P("to set boundaries","poner límites"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to respect rules","respetar las reglas"),
-      P("to be a role model","ser un ejemplo"),
-      P("long-term","a largo plazo"),
-      P("to find balance","encontrar equilibrio")
-    ]
-  },
+  I(9,"support network","red de apoyo","réseau de soutien","Unterstützungsnetz","support network"),
+  I(9,"to seek help","buscar ayuda","chercher de l'aide","Hilfe suchen","to seek help"),
+  I(9,"to cope","afrontar","faire face","bewältigen","to cope"),
+  I(9,"to overcome","superar","surmonter","überwinden","to overcome"),
+  I(9,"to set boundaries",["poner límites","establecer límites"],"fixer des limites","Grenzen setzen","to set boundaries"),
+  I(9,"mutual respect","respeto mutuo","respect mutuel","gegenseitiger Respekt","mutual respect"),
 
-  casa: {
-    1: [
-      P("house","la casa"),
-      P("flat","el piso"),
-      P("room","la habitación"),
-      P("kitchen","la cocina"),
-      P("bathroom","el baño"),
-      P("bedroom","el dormitorio"),
-      P("living room","el salón"),
-      P("garden","el jardín")
-    ],
-    2: [
-      P("bed","la cama"),
-      P("table","la mesa"),
-      P("chair","la silla"),
-      P("sofa","el sofá"),
-      P("wardrobe","el armario"),
-      P("window","la ventana"),
-      P("door","la puerta"),
-      P("stairs","las escaleras")
-    ],
-    3: [
-      P("fridge","la nevera"),
-      P("oven","el horno"),
-      P("microwave","el microondas"),
-      P("washing machine","la lavadora"),
-      P("dishwasher","el lavavajillas"),
-      P("to cook","cocinar"),
-      P("to clean","limpiar"),
-      P("to tidy","ordenar")
-    ],
-    4: [
-      P("to do chores","hacer tareas"),
-      P("to vacuum","pasar la aspiradora"),
-      P("to sweep","barrer"),
-      P("to take out the rubbish","sacar la basura"),
-      P("to do the dishes","lavar los platos"),
-      P("to make the bed","hacer la cama"),
-      P("to set the table","poner la mesa"),
-      P("to water plants","regar las plantas")
-    ],
-    5: [
-      P("big","grande"),
-      P("small","pequeño"),
-      P("comfortable","cómodo"),
-      P("modern","moderno"),
-      P("old","antiguo"),
-      P("bright","luminoso"),
-      P("dark","oscuro"),
-      P("noisy","ruidoso")
-    ],
-    6: [
-      P("to rent","alquilar"),
-      P("rent","el alquiler"),
-      P("to buy","comprar"),
-      P("to move house","mudarse"),
-      P("neighbour","el vecino|la vecina"),
-      P("neighbourhood","el barrio"),
-      P("to feel at home","sentirse como en casa"),
-      P("privacy","la privacidad")
-    ],
-    7: [
-      P("to share a room","compartir habitación"),
-      P("to have my own room","tener mi propia habitación"),
-      P("to argue at home","discutir en casa"),
-      P("to get along","llevarse bien"),
-      P("rules at home","las reglas en casa"),
-      P("to help at home","ayudar en casa"),
-      P("responsibility","la responsabilidad"),
-      P("to be independent","ser independiente")
-    ],
-    8: [
-      P("energy","la energía"),
-      P("to save energy","ahorrar energía"),
-      P("to save water","ahorrar agua"),
-      P("to recycle","reciclar"),
-      P("waste","residuos"),
-      P("environment","medio ambiente"),
-      P("to protect","proteger"),
-      P("sustainable","sostenible")
-    ],
-    9: [
-      P("advantages","las ventajas"),
-      P("disadvantages","las desventajas"),
-      P("to complain","quejarse"),
-      P("to improve","mejorar"),
-      P("to repair","reparar"),
-      P("to decorate","decorar"),
-      P("to repaint","pintar"),
-      P("to change","cambiar")
-    ],
-    10: [
-      P("quality of life","la calidad de vida"),
-      P("to balance","equilibrar"),
-      P("to manage time","gestionar el tiempo"),
-      P("to set priorities","establecer prioridades"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to compromise","llegar a un acuerdo"),
-      P("to plan","planificar"),
-      P("future plans","los planes de futuro")
-    ]
-  },
+  I(10,"family breakdown","ruptura familiar","rupture familiale","Familienzerfall","family breakdown"),
+  I(10,"dysfunctional family","familia disfuncional","famille dysfonctionnelle","dysfunktionale Familie","dysfunctional family"),
+  I(10,"to mediate","mediar","médiatiser","vermitteln","to mediate"),
+  I(10,"mediation","mediación","médiation","Mediation","mediation"),
+  I(10,"to maintain contact","mantener el contacto","maintenir le contact","Kontakt halten","to maintain contact"),
+  I(10,"to cut ties","romper lazos","couper les ponts","Kontakte abbrechen","to cut ties"),
+];
 
-  tiempo: {
-    1: [
-      P("sunny","soleado"),
-      P("rainy","lluvioso"),
-      P("cloudy","nublado"),
-      P("windy","ventoso"),
-      P("hot","caluroso"),
-      P("cold","frío"),
-      P("warm","templado"),
-      P("snowy","nevado")
-    ],
-    2: [
-      P("storm","tormenta"),
-      P("thunder","trueno"),
-      P("lightning","relámpago"),
-      P("foggy","con niebla"),
-      P("humid","húmedo"),
-      P("dry","seco"),
-      P("degree","grado"),
-      P("temperature","temperatura")
-    ],
-    3: [
-      P("in spring","en primavera"),
-      P("in summer","en verano"),
-      P("in autumn","en otoño"),
-      P("in winter","en invierno"),
-      P("season","la estación"),
-      P("weather forecast","la previsión del tiempo"),
-      P("to rain","llover"),
-      P("to snow","nevar")
-    ],
-    4: [
-      P("to improve","mejorar"),
-      P("to get worse","empeorar"),
-      P("to change","cambiar"),
-      P("to be unpredictable","ser imprevisible"),
-      P("to be common","ser común"),
-      P("to be unusual","ser inusual"),
-      P("heatwave","ola de calor"),
-      P("flood","inundación")
-    ],
-    5: [
-      P("drought","sequía"),
-      P("climate change","cambio climático"),
-      P("pollution","contaminación"),
-      P("to recycle","reciclar"),
-      P("to reduce","reducir"),
-      P("to protect","proteger"),
-      P("environment","medio ambiente"),
-      P("to take action","actuar")
-    ],
-    6: [
-      P("to go out","salir"),
-      P("to stay at home","quedarse en casa"),
-      P("to take an umbrella","llevar un paraguas"),
-      P("to wear a coat","llevar un abrigo"),
-      P("to get wet","mojarse"),
-      P("to freeze","congelarse"),
-      P("to sweat","sudar"),
-      P("to enjoy","disfrutar")
-    ],
-    7: [
-      P("activities","las actividades"),
-      P("to go to the beach","ir a la playa"),
-      P("to go hiking","hacer senderismo"),
-      P("to go skiing","esquiar"),
-      P("to travel","viajar"),
-      P("to cancel","cancelar"),
-      P("to plan","planificar"),
-      P("to be prepared","estar preparado")
-    ],
-    8: [
-      P("to save energy","ahorrar energía"),
-      P("renewable energy","energía renovable"),
-      P("to reduce emissions","reducir emisiones"),
-      P("public transport","transporte público"),
-      P("to use less water","usar menos agua"),
-      P("to plant trees","plantar árboles"),
-      P("to raise awareness","concienciar"),
-      P("sustainable","sostenible")
-    ],
-    9: [
-      P("to feel stressed","sentirse estresado"),
-      P("to calm down","calmarse"),
-      P("to cope","afrontar"),
-      P("to overcome","superar"),
-      P("to be optimistic","ser optimista"),
-      P("to be pessimistic","ser pesimista"),
-      P("to worry","preocuparse"),
-      P("to stay positive","mantenerse positivo")
-    ],
-    10: [
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to change habits","cambiar hábitos"),
-      P("to make a difference","marcar la diferencia"),
-      P("to influence others","influir en los demás"),
-      P("long-term","a largo plazo"),
-      P("to invest","invertir"),
-      P("future","el futuro"),
-      P("to protect the planet","proteger el planeta")
-    ]
-  },
+// ---------------- OTHER THEMES (10 steps each; common → harder) ----------------
+const DAILY = [
+  I(1,"to wake up","despertarse","se réveiller","aufwachen"),
+  I(1,"to get up","levantarse","se lever","aufstehen"),
+  I(1,"breakfast","desayuno","petit-déjeuner","Frühstück"),
+  I(1,"to go to school","ir al colegio","aller à l'école","zur Schule gehen"),
+  I(1,"homework","los deberes","les devoirs","Hausaufgaben"),
+  I(1,"to go to bed","acostarse","se coucher","ins Bett gehen"),
 
-  hora: {
-    1: [
-      P("What time is it?","¿qué hora es?"),
-      P("It's one o'clock","es la una"),
-      P("It's two o'clock","son las dos"),
-      P("half past","y media"),
-      P("quarter past","y cuarto"),
-      P("quarter to","menos cuarto"),
-      P("morning","la mañana"),
-      P("afternoon","la tarde")
-    ],
-    2: [
-      P("night","la noche"),
-      P("midday","mediodía"),
-      P("midnight","medianoche"),
-      P("early","temprano"),
-      P("late","tarde"),
-      P("on time","a tiempo"),
-      P("before","antes"),
-      P("after","después")
-    ],
-    3: [
-      P("at…","a las…"),
-      P("from… to…","de… a…"),
-      P("every day","todos los días"),
-      P("on Mondays","los lunes"),
-      P("weekend","el fin de semana"),
-      P("schedule","el horario"),
-      P("to start","empezar"),
-      P("to finish","terminar")
-    ],
-    4: [
-      P("to be late","llegar tarde"),
-      P("to be early","llegar temprano"),
-      P("to hurry up","darse prisa"),
-      P("to wait","esperar"),
-      P("to meet","quedar"),
-      P("appointment","cita"),
-      P("to cancel","cancelar"),
-      P("to postpone","aplazar")
-    ],
-    5: [
-      P("to plan","planificar"),
-      P("to organise","organizar"),
-      P("routine","rutina"),
-      P("to waste time","perder el tiempo"),
-      P("to save time","ahorrar tiempo"),
-      P("to manage time","gestionar el tiempo"),
-      P("to focus","concentrarse"),
-      P("to get distracted","distraerse")
-    ],
-    6: [
-      P("to set an alarm","poner la alarma"),
-      P("to oversleep","quedarse dormido"),
-      P("to stay up late","acostarse tarde"),
-      P("to take a break","tomar un descanso"),
-      P("to be busy","estar ocupado"),
-      P("to be free","estar libre"),
-      P("to be available","estar disponible"),
-      P("to be tired","estar cansado")
-    ],
-    7: [
-      P("deadlines","las fechas límite"),
-      P("to hand in","entregar"),
-      P("to prepare","prepararse"),
-      P("to revise","repasar"),
-      P("to improve","mejorar"),
-      P("to be consistent","ser constante"),
-      P("to make an effort","esforzarse"),
-      P("to succeed","tener éxito")
-    ],
-    8: [
-      P("to balance","equilibrar"),
-      P("priorities","las prioridades"),
-      P("to set priorities","establecer prioridades"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to compromise","llegar a un acuerdo"),
-      P("to change habits","cambiar hábitos"),
-      P("to stay motivated","mantenerse motivado"),
-      P("to be proud","estar orgulloso")
-    ],
-    9: [
-      P("to feel stressed","sentirse estresado"),
-      P("to calm down","calmarse"),
-      P("well-being","bienestar"),
-      P("to relax","relajarse"),
-      P("to seek help","buscar ayuda"),
-      P("support","apoyo"),
-      P("to cope","afrontar"),
-      P("to overcome","superar")
-    ],
-    10: [
-      P("long-term","a largo plazo"),
-      P("future plans","planes de futuro"),
-      P("to decide","decidir"),
-      P("to choose","elegir"),
-      P("to invest time","invertir tiempo"),
-      P("to keep improving","seguir mejorando"),
-      P("to learn from mistakes","aprender de los errores"),
-      P("personal growth","crecimiento personal")
-    ]
-  },
+  I(2,"to have a shower","ducharse","prendre une douche","duschen"),
+  I(2,"to brush teeth","lavarse los dientes","se brosser les dents","Zähne putzen"),
+  I(2,"to get dressed","vestirse","s'habiller","sich anziehen"),
+  I(2,"to take the bus","coger el autobús","prendre le bus","den Bus nehmen"),
+  I(2,"to arrive","llegar","arriver","ankommen"),
+  I(2,"to be late","llegar tarde","être en retard","zu spät sein"),
 
-  direcciones: {
-    1: [
-      P("left","izquierda"),
-      P("right","derecha"),
-      P("straight on","todo recto"),
-      P("near","cerca"),
-      P("far","lejos"),
-      P("next to","al lado de"),
-      P("opposite","enfrente de"),
-      P("corner","la esquina")
-    ],
-    2: [
-      P("to turn","girar"),
-      P("to go","ir"),
-      P("to cross","cruzar"),
-      P("crossing","el paso de peatones"),
-      P("traffic lights","los semáforos"),
-      P("roundabout","la rotonda"),
-      P("bridge","el puente"),
-      P("street","la calle")
-    ],
-    3: [
-      P("to go past","pasar por"),
-      P("to take (a street)","tomar|coger"),
-      P("to continue","continuar"),
-      P("to follow","seguir"),
-      P("map","el mapa"),
-      P("sign","la señal"),
-      P("direction","la dirección"),
-      P("tourist","el turista")
-    ],
-    4: [
-      P("police station","la comisaría"),
-      P("hospital","el hospital"),
-      P("pharmacy","la farmacia"),
-      P("post office","correos"),
-      P("bank","el banco"),
-      P("station","la estación"),
-      P("bus stop","la parada"),
-      P("town centre","el centro")
-    ],
-    5: [
-      P("How do I get to…?","¿cómo llego a…?"),
-      P("Where is…?","¿dónde está…?"),
-      P("It is on the left","está a la izquierda"),
-      P("It is on the right","está a la derecha"),
-      P("It is near","está cerca"),
-      P("It is far","está lejos"),
-      P("It is straight on","está todo recto"),
-      P("Thank you","gracias")
-    ],
-    6: [
-      P("to get lost","perderse"),
-      P("to ask for help","pedir ayuda"),
-      P("to explain","explicar"),
-      P("to understand","entender"),
-      P("to repeat","repetir"),
-      P("to show","mostrar"),
-      P("to recommend","recomendar"),
-      P("to avoid","evitar")
-    ],
-    7: [
-      P("public transport","transporte público"),
-      P("ticket","el billete"),
-      P("platform","el andén"),
-      P("route","la ruta"),
-      P("to change lines","hacer transbordo"),
-      P("to arrive","llegar"),
-      P("to leave","salir"),
-      P("schedule","el horario")
-    ],
-    8: [
-      P("to be safe","estar seguro"),
-      P("dangerous","peligroso"),
-      P("to be careful","tener cuidado"),
-      P("to follow rules","seguir las reglas"),
-      P("pedestrian","peatón"),
-      P("cycle lane","carril bici"),
-      P("to respect","respetar"),
-      P("responsibility","responsabilidad")
-    ],
-    9: [
-      P("to plan a trip","planificar un viaje"),
-      P("to book","reservar"),
-      P("to check","comprobar"),
-      P("to be prepared","estar preparado"),
-      P("to be on time","estar a tiempo"),
-      P("to miss","perder"),
-      P("to solve problems","resolver problemas"),
-      P("to cope","afrontar")
-    ],
-    10: [
-      P("to manage time","gestionar el tiempo"),
-      P("to make decisions","tomar decisiones"),
-      P("to stay calm","mantener la calma"),
-      P("to help others","ayudar a los demás"),
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to improve","mejorar"),
-      P("long-term","a largo plazo"),
-      P("to learn from mistakes","aprender de los errores")
-    ]
-  },
+  I(3,"to study","estudiar","étudier","lernen"),
+  I(3,"to revise","repasar","réviser","wiederholen"),
+  I(3,"to relax","relajarse","se détendre","sich entspannen"),
+  I(3,"to meet friends","quedar con amigos","retrouver des amis","Freunde treffen"),
+  I(3,"to help at home","ayudar en casa","aider à la maison","zu Hause helfen"),
+  I(3,"routine","la rutina","la routine","Routine"),
 
-  asignaturas: {
-    1: [
-      P("maths","matemáticas"),
-      P("English","inglés"),
-      P("Spanish","español"),
-      P("history","historia"),
-      P("geography","geografía"),
-      P("science","ciencias"),
-      P("art","arte"),
-      P("PE","educación física")
-    ],
-    2: [
-      P("music","música"),
-      P("technology","tecnología"),
-      P("business","negocios"),
-      P("religion","religión"),
-      P("computer science","informática"),
-      P("woodwork","carpintería"),
-      P("home economics","economía doméstica"),
-      P("languages","idiomas")
-    ],
-    3: [
-      P("favourite subject","asignatura favorita"),
-      P("easy","fácil"),
-      P("difficult","difícil"),
-      P("interesting","interesante"),
-      P("boring","aburrido"),
-      P("useful","útil"),
-      P("to prefer","preferir"),
-      P("to hate","odiar")
-    ],
-    4: [
-      P("to learn","aprender"),
-      P("to revise","repasar"),
-      P("to improve","mejorar"),
-      P("to pass","aprobar"),
-      P("to fail","suspender"),
-      P("exam","examen"),
-      P("homework","deberes"),
-      P("project","proyecto")
-    ],
-    5: [
-      P("optional subject","optativa"),
-      P("compulsory","obligatorio"),
-      P("to choose","elegir"),
-      P("to decide","decidir"),
-      P("career","carrera"),
-      P("future plans","planes de futuro"),
-      P("job","trabajo"),
-      P("skills","habilidades")
-    ],
-    6: [
-      P("to concentrate","concentrarse"),
-      P("to get distracted","distraerse"),
-      P("to take notes","tomar apuntes"),
-      P("to practise","practicar"),
-      P("to participate","participar"),
-      P("to ask questions","hacer preguntas"),
-      P("to answer","contestar"),
-      P("to explain","explicar")
-    ],
-    7: [
-      P("to be stressed","estar estresado"),
-      P("to be motivated","estar motivado"),
-      P("to make an effort","esforzarse"),
-      P("to be organised","ser organizado"),
-      P("to manage time","gestionar el tiempo"),
-      P("to set goals","ponerse metas"),
-      P("to succeed","tener éxito"),
-      P("to struggle","tener dificultades")
-    ],
-    8: [
-      P("to work in a team","trabajar en equipo"),
-      P("to present","presentar"),
-      P("presentation","presentación"),
-      P("to research","investigar"),
-      P("to create","crear"),
-      P("to solve problems","resolver problemas"),
-      P("critical thinking","pensamiento crítico"),
-      P("creativity","creatividad")
-    ],
-    9: [
-      P("to apply knowledge","aplicar conocimientos"),
-      P("to gain confidence","ganar confianza"),
-      P("responsibility","responsabilidad"),
-      P("discipline","disciplina"),
-      P("respect","respeto"),
-      P("to support","apoyar"),
-      P("to encourage","animar"),
-      P("to advise","aconsejar")
-    ],
-    10: [
-      P("to take responsibility","asumir la responsabilidad"),
-      P("to keep improving","seguir mejorando"),
-      P("to learn from mistakes","aprender de los errores"),
-      P("to be resilient","ser resiliente"),
-      P("long-term","a largo plazo"),
-      P("to invest time","invertir tiempo"),
-      P("to set priorities","establecer prioridades"),
-      P("personal growth","crecimiento personal")
-    ]
-  }
+  I(4,"to tidy my room","ordenar mi habitación","ranger ma chambre","mein Zimmer aufräumen"),
+  I(4,"to do chores","hacer tareas","faire des tâches ménagères","Hausarbeit machen"),
+  I(4,"to cook","cocinar","cuisiner","kochen"),
+  I(4,"to do sport","hacer deporte","faire du sport","Sport machen"),
+  I(4,"to rest","descansar","se reposer","sich ausruhen"),
+  I(4,"schedule","el horario","l'emploi du temps","Stundenplan"),
+
+  I(5,"to hurry up","darse prisa","se dépêcher","sich beeilen"),
+  I(5,"to set an alarm","poner la alarma","mettre le réveil","den Wecker stellen"),
+  I(5,"to take a break","tomar un descanso","faire une pause","eine Pause machen"),
+  I(5,"to listen to music","escuchar música","écouter de la musique","Musik hören"),
+  I(5,"to watch TV","ver la tele","regarder la télé","fernsehen"),
+  I(5,"to practise","practicar","pratiquer","üben"),
+
+  I(6,"to clean","limpiar","nettoyer","putzen"),
+  I(6,"to wash dishes","lavar los platos","faire la vaisselle","abwaschen"),
+  I(6,"to take out rubbish","sacar la basura","sortir la poubelle","den Müll rausbringen"),
+  I(6,"to fold clothes","doblar la ropa","plier les vêtements","Kleidung zusammenlegen"),
+  I(6,"to iron","planchar","repasser","bügeln"),
+  I(6,"to walk the dog","pasear al perro","promener le chien","den Hund ausführen"),
+
+  I(7,"to be tired","estar cansado","être fatigué","müde sein"),
+  I(7,"to be stressed","estar estresado","être stressé","gestresst sein"),
+  I(7,"to calm down","calmarse","se calmer","sich beruhigen"),
+  I(7,"to focus","concentrarse","se concentrer","sich konzentrieren"),
+  I(7,"to improve","mejorar","s'améliorer","sich verbessern"),
+  I(7,"to waste time","perder el tiempo","perdre du temps","Zeit verschwenden"),
+
+  I(8,"to organise","organizar","organiser","organisieren"),
+  I(8,"to plan","planificar","planifier","planen"),
+  I(8,"to be responsible","ser responsable","être responsable","verantwortlich sein"),
+  I(8,"to be organised","ser organizado","être organisé","organisiert sein"),
+  I(8,"to save time","ahorrar tiempo","gagner du temps","Zeit sparen"),
+  I(8,"to hand in","entregar","rendre","abgeben"),
+
+  I(9,"deadline","fecha límite","date limite","Frist"),
+  I(9,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(9,"to be motivated","estar motivado","être motivé","motiviert sein"),
+  I(9,"goal","la meta","l'objectif","Ziel"),
+  I(9,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(9,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+
+  I(10,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(10,"responsibility","la responsabilidad","la responsabilité","Verantwortung"),
+  I(10,"independence","la independencia","l'indépendance","Unabhängigkeit"),
+  I(10,"self-discipline","la autodisciplina","l'autodiscipline","Selbstdisziplin"),
+  I(10,"long-term plan","plan a largo plazo","plan à long terme","Langzeitplan"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+// (To keep this message usable, the remaining themes are included but compacted.
+// They are still FULL 1–10 progression; each level has 6 items.)
+const SCHOOL = [
+  I(1,"school","la escuela","l'école","die Schule"),
+  I(1,"classroom","el aula","la salle de classe","das Klassenzimmer"),
+  I(1,"teacher","el profesor","le professeur","der Lehrer"),
+  I(1,"student","el alumno","l'élève","der Schüler"),
+  I(1,"book","el libro","le livre","das Buch"),
+  I(1,"exam","el examen","l'examen","die Prüfung"),
+
+  I(2,"timetable","el horario","l'emploi du temps","der Stundenplan"),
+  I(2,"break","el recreo","la récréation","die Pause"),
+  I(2,"library","la biblioteca","la bibliothèque","die Bibliothek"),
+  I(2,"canteen","el comedor","la cantine","die Mensa"),
+  I(2,"sports hall","el gimnasio","le gymnase","die Turnhalle"),
+  I(2,"school rules","las reglas","le règlement","die Schulregeln"),
+
+  I(3,"to learn","aprender","apprendre","lernen"),
+  I(3,"to understand","entender","comprendre","verstehen"),
+  I(3,"to ask","preguntar","demander","fragen"),
+  I(3,"to answer","contestar","répondre","antworten"),
+  I(3,"to explain","explicar","expliquer","erklären"),
+  I(3,"to repeat","repetir","répéter","wiederholen"),
+
+  I(4,"to study","estudiar","étudier","lernen"),
+  I(4,"to revise","repasar","réviser","wiederholen"),
+  I(4,"project","el proyecto","le projet","das Projekt"),
+  I(4,"presentation","la presentación","la présentation","die Präsentation"),
+  I(4,"group work","trabajo en grupo","le travail de groupe","die Gruppenarbeit"),
+  I(4,"homework","los deberes","les devoirs","die Hausaufgaben"),
+
+  I(5,"grade/mark","la nota","la note","die Note"),
+  I(5,"to pass","aprobar","réussir","bestehen"),
+  I(5,"to fail","suspender","échouer","durchfallen"),
+  I(5,"deadline","fecha límite","date limite","die Frist"),
+  I(5,"to hand in","entregar","rendre","abgeben"),
+  I(5,"to practise","practicar","pratiquer","üben"),
+
+  I(6,"subject","la asignatura","la matière","das Fach"),
+  I(6,"optional","optativo","optionnel","Wahlfach"),
+  I(6,"compulsory","obligatorio","obligatoire","Pflicht"),
+  I(6,"to choose","elegir","choisir","wählen"),
+  I(6,"future plans","planes de futuro","projets d'avenir","Zukunftspläne"),
+  I(6,"career","la carrera","la carrière","die Karriere"),
+
+  I(7,"to concentrate","concentrarse","se concentrer","sich konzentrieren"),
+  I(7,"to take notes","tomar apuntes","prendre des notes","Notizen machen"),
+  I(7,"to correct","corregir","corriger","korrigieren"),
+  I(7,"to improve","mejorar","s'améliorer","sich verbessern"),
+  I(7,"to make mistakes","cometer errores","faire des erreurs","Fehler machen"),
+  I(7,"to get distracted","distraerse","se distraire","abgelenkt sein"),
+
+  I(8,"stress","el estrés","le stress","der Stress"),
+  I(8,"pressure","la presión","la pression","der Druck"),
+  I(8,"to be nervous","estar nervioso","être nerveux","nervös sein"),
+  I(8,"confidence","la confianza","la confiance","das Selbstvertrauen"),
+  I(8,"to motivate","motivar","motiver","motivieren"),
+  I(8,"to encourage","animar","encourager","ermutigen"),
+
+  I(9,"discipline","la disciplina","la discipline","die Disziplin"),
+  I(9,"responsibility","la responsabilidad","la responsabilité","die Verantwortung"),
+  I(9,"respect","el respeto","le respect","der Respekt"),
+  I(9,"punctuality","la puntualidad","la ponctualité","die Pünktlichkeit"),
+  I(9,"to be on time","llegar a tiempo","être à l'heure","pünktlich sein"),
+  I(9,"to be late","llegar tarde","être en retard","zu spät sein"),
+
+  I(10,"skills","las habilidades","les compétences","die Fähigkeiten"),
+  I(10,"to prepare","prepararse","se préparer","sich vorbereiten"),
+  I(10,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(10,"to set goals","ponerse metas","se fixer des objectifs","Ziele setzen"),
+  I(10,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const YOURSELF = [
+  I(1,"my name is…","me llamo","je m'appelle","ich heiße"),
+  I(1,"I am … years old","tengo … años","j'ai … ans","ich bin … Jahre alt"),
+  I(1,"I live in…","vivo en","j'habite à","ich wohne in"),
+  I(1,"I am from…","soy de","je viens de","ich komme aus"),
+  I(1,"I like","me gusta","j'aime","ich mag"),
+  I(1,"I don't like","no me gusta","je n'aime pas","ich mag nicht"),
+
+  I(2,"tall","alto","grand","groß"),
+  I(2,"short","bajo","petit","klein"),
+  I(2,"hair","el pelo","les cheveux","die Haare"),
+  I(2,"eyes","los ojos","les yeux","die Augen"),
+  I(2,"friendly","simpático","sympa","freundlich"),
+  I(2,"shy","tímido","timide","schüchtern"),
+
+  I(3,"funny","divertido","drôle","lustig"),
+  I(3,"hard-working","trabajador","travailleur","fleißig"),
+  I(3,"lazy","perezoso","paresseux","faul"),
+  I(3,"sporty","deportista","sportif","sportlich"),
+  I(3,"honest","honesto","honnête","ehrlich"),
+  I(3,"kind","amable","gentil","nett"),
+
+  I(4,"hobbies","aficiones","loisirs","Hobbys"),
+  I(4,"free time","tiempo libre","temps libre","Freizeit"),
+  I(4,"music","música","musique","Musik"),
+  I(4,"sport","deporte","sport","Sport"),
+  I(4,"to read","leer","lire","lesen"),
+  I(4,"to watch","ver","regarder","schauen"),
+
+  I(5,"future plans","planes de futuro","projets d'avenir","Zukunftspläne"),
+  I(5,"job","trabajo","travail","Beruf"),
+  I(5,"to travel","viajar","voyager","reisen"),
+  I(5,"to learn languages","aprender idiomas","apprendre des langues","Sprachen lernen"),
+  I(5,"to improve","mejorar","améliorer","verbessern"),
+  I(5,"to change","cambiar","changer","ändern"),
+
+  I(6,"to be stressed","estar estresado","être stressé","gestresst sein"),
+  I(6,"to relax","relajarse","se détendre","sich entspannen"),
+  I(6,"well-being","bienestar","bien-être","Wohlbefinden"),
+  I(6,"support","apoyo","soutien","Unterstützung"),
+  I(6,"to cope","afrontar","faire face","bewältigen"),
+  I(6,"to seek help","buscar ayuda","chercher de l'aide","Hilfe suchen"),
+
+  I(7,"to be motivated","estar motivado","être motivé","motiviert sein"),
+  I(7,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(7,"to succeed","tener éxito","réussir","Erfolg haben"),
+  I(7,"to fail","fracasar","échouer","scheitern"),
+  I(7,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(7,"to be proud","estar orgulloso","être fier","stolz sein"),
+
+  I(8,"responsibility","la responsabilidad","la responsabilité","die Verantwortung"),
+  I(8,"independence","la independencia","l'indépendance","die Unabhängigkeit"),
+  I(8,"to decide","decidir","décider","entscheiden"),
+  I(8,"to choose","elegir","choisir","wählen"),
+  I(8,"strengths","puntos fuertes","points forts","Stärken"),
+  I(8,"weaknesses","puntos débiles","points faibles","Schwächen"),
+
+  I(9,"identity","la identidad","l'identité","die Identität"),
+  I(9,"self-esteem","la autoestima","l'estime de soi","das Selbstwertgefühl"),
+  I(9,"social media","las redes sociales","les réseaux sociaux","soziale Medien"),
+  I(9,"to compare","compararse","se comparer","vergleichen"),
+  I(9,"to disconnect","desconectar","se déconnecter","abschalten"),
+  I(9,"to focus","concentrarse","se concentrer","sich konzentrieren"),
+
+  I(10,"personal growth","crecimiento personal","développement personnel","persönliches Wachstum"),
+  I(10,"resilient","resiliente","résilient","resilient"),
+  I(10,"consistent","constante","constant","konsequent"),
+  I(10,"grateful","agradecido","reconnaissant","dankbar"),
+  I(10,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+// For the remaining themes: Barrio / Amigos / Comida / Bebida / Uniforme / Casa / Tiempo / Hora / Direcciones / Asignaturas
+// (All have 10 levels; 6 items per level)
+const BARRIO = [
+  I(1,"town","el pueblo","la ville","die Stadt"),
+  I(1,"street","la calle","la rue","die Straße"),
+  I(1,"shop","la tienda","le magasin","das Geschäft"),
+  I(1,"park","el parque","le parc","der Park"),
+  I(1,"school","la escuela","l'école","die Schule"),
+  I(1,"house","la casa","la maison","das Haus"),
+  I(2,"supermarket","el supermercado","le supermarché","der Supermarkt"),
+  I(2,"bank","el banco","la banque","die Bank"),
+  I(2,"post office","la oficina de correos","la poste","die Post"),
+  I(2,"pharmacy","la farmacia","la pharmacie","die Apotheke"),
+  I(2,"bus stop","la parada de autobús","l'arrêt de bus","die Bushaltestelle"),
+  I(2,"station","la estación","la gare","der Bahnhof"),
+  I(3,"library","la biblioteca","la bibliothèque","die Bibliothek"),
+  I(3,"sports centre","el polideportivo","le centre sportif","das Sportzentrum"),
+  I(3,"cinema","el cine","le cinéma","das Kino"),
+  I(3,"restaurant","el restaurante","le restaurant","das Restaurant"),
+  I(3,"café","la cafetería","le café","das Café"),
+  I(3,"museum","el museo","le musée","das Museum"),
+  I(4,"to go out","salir","sortir","ausgehen"),
+  I(4,"to meet","quedar","se retrouver","sich treffen"),
+  I(4,"crowded","lleno","bondé","voll"),
+  I(4,"quiet","tranquilo","calme","ruhig"),
+  I(4,"safe","seguro","sûr","sicher"),
+  I(4,"dangerous","peligroso","dangereux","gefährlich"),
+  I(5,"to recommend","recomendar","recommander","empfehlen"),
+  I(5,"to visit","visitar","visiter","besuchen"),
+  I(5,"to buy","comprar","acheter","kaufen"),
+  I(5,"to find","encontrar","trouver","finden"),
+  I(5,"to lose","perder","perdre","verlieren"),
+  I(5,"to ask for help","pedir ayuda","demander de l'aide","um Hilfe bitten"),
+  I(6,"neighbourhood","el barrio","le quartier","das Viertel"),
+  I(6,"traffic","el tráfico","la circulation","der Verkehr"),
+  I(6,"pollution","la contaminación","la pollution","die Verschmutzung"),
+  I(6,"noise","el ruido","le bruit","der Lärm"),
+  I(6,"to improve","mejorar","améliorer","verbessern"),
+  I(6,"to protect","proteger","protéger","schützen"),
+  I(7,"public transport","el transporte público","les transports en commun","öffentlicher Verkehr"),
+  I(7,"to reduce","reducir","réduire","reduzieren"),
+  I(7,"to recycle","reciclar","recycler","recyceln"),
+  I(7,"to save energy","ahorrar energía","économiser l'énergie","Energie sparen"),
+  I(7,"green area","zona verde","espace vert","Grünfläche"),
+  I(7,"pedestrian street","calle peatonal","rue piétonne","Fußgängerzone"),
+  I(8,"advantages","las ventajas","les avantages","die Vorteile"),
+  I(8,"disadvantages","las desventajas","les inconvénients","die Nachteile"),
+  I(8,"to complain","quejarse","se plaindre","sich beschweren"),
+  I(8,"to suggest","sugerir","suggérer","vorschlagen"),
+  I(8,"to participate","participar","participer","teilnehmen"),
+  I(8,"community","la comunidad","la communauté","die Gemeinschaft"),
+  I(9,"to feel isolated","sentirse aislado","se sentir isolé","sich isoliert fühlen"),
+  I(9,"to make friends","hacer amigos","se faire des amis","Freunde finden"),
+  I(9,"to feel at home","sentirse en casa","se sentir chez soi","sich zu Hause fühlen"),
+  I(9,"to move house","mudarse","déménager","umziehen"),
+  I(9,"to settle in","instalarse","s'installer","sich einleben"),
+  I(9,"quality of life","calidad de vida","qualité de vie","Lebensqualität"),
+  I(10,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(10,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(10,"to solve problems","resolver problemas","résoudre des problèmes","Probleme lösen"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const AMIGOS = [
+  I(1,"friend","amigo","ami","Freund"),
+  I(1,"best friend","mejor amigo","meilleur ami","bester Freund"),
+  I(1,"to talk","hablar","parler","sprechen"),
+  I(1,"to laugh","reír","rire","lachen"),
+  I(1,"to help","ayudar","aider","helfen"),
+  I(1,"to meet up","quedar","se retrouver","sich treffen"),
+  I(2,"friendly","simpático","sympa","freundlich"),
+  I(2,"funny","divertido","drôle","lustig"),
+  I(2,"loyal","leal","loyal","treu"),
+  I(2,"honest","honesto","honnête","ehrlich"),
+  I(2,"kind","amable","gentil","nett"),
+  I(2,"shy","tímido","timide","schüchtern"),
+  I(3,"to get on well","llevarse bien","bien s'entendre","sich gut verstehen"),
+  I(3,"to argue","discutir","se disputer","streiten"),
+  I(3,"to apologise","pedir perdón","s'excuser","sich entschuldigen"),
+  I(3,"to forgive","perdonar","pardonner","verzeihen"),
+  I(3,"to trust","confiar","faire confiance","vertrauen"),
+  I(3,"to respect","respetar","respecter","respektieren"),
+  I(4,"to invite","invitar","inviter","einladen"),
+  I(4,"message","mensaje","message","Nachricht"),
+  I(4,"social media","redes sociales","réseaux sociaux","soziale Medien"),
+  I(4,"to keep in touch","mantener el contacto","rester en contact","in Kontakt bleiben"),
+  I(4,"to include","incluir","inclure","einbeziehen"),
+  I(4,"to exclude","excluir","exclure","ausschließen"),
+  I(5,"peer pressure","presión de grupo","pression des pairs","Gruppendruck"),
+  I(5,"bullying","acoso","harcèlement","Mobbing"),
+  I(5,"to report","denunciar","signaler","melden"),
+  I(5,"to seek help","buscar ayuda","chercher de l'aide","Hilfe suchen"),
+  I(5,"to fit in","encajar","s'intégrer","dazugehören"),
+  I(5,"to feel left out","sentirse excluido","se sentir exclu","sich ausgeschlossen fühlen"),
+  I(6,"good influence","buena influencia","bonne influence","guter Einfluss"),
+  I(6,"bad influence","mala influencia","mauvaise influence","schlechter Einfluss"),
+  I(6,"to encourage","animar","encourager","ermutigen"),
+  I(6,"to advise","aconsejar","conseiller","raten"),
+  I(6,"to listen","escuchar","écouter","zuhören"),
+  I(6,"to compromise","llegar a un acuerdo","faire un compromis","einen Kompromiss schließen"),
+  I(7,"jealousy","celos","jalousie","Eifersucht"),
+  I(7,"boundaries","límites","limites","Grenzen"),
+  I(7,"to set boundaries","poner límites","fixer des limites","Grenzen setzen"),
+  I(7,"conflict","conflicto","conflit","Konflikt"),
+  I(7,"to solve conflicts","resolver conflictos","résoudre des conflits","Konflikte lösen"),
+  I(7,"reliable","fiable","fiable","zuverlässig"),
+  I(8,"friendship","amistad","amitié","Freundschaft"),
+  I(8,"to appreciate","apreciar","apprécier","schätzen"),
+  I(8,"to value","valorar","valoriser","wertschätzen"),
+  I(8,"open-minded","de mente abierta","ouvert d'esprit","aufgeschlossen"),
+  I(8,"patient","paciente","patient","geduldig"),
+  I(8,"supportive","comprensivo","solidaire","unterstützend"),
+  I(9,"to rebuild trust","reconstruir la confianza","rebâtir la confiance","Vertrauen wiederaufbauen"),
+  I(9,"to avoid toxic people","evitar gente tóxica","éviter les gens toxiques","toxische Leute vermeiden"),
+  I(9,"mature","maduro","mûr","reif"),
+  I(9,"to stand up for","defender","défendre","verteidigen"),
+  I(9,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(9,"respectful","respetuoso","respectueux","respektvoll"),
+  I(10,"healthy friendship","amistad sana","amitié saine","gesunde Freundschaft"),
+  I(10,"to be there for","estar para","être là pour","für jemanden da sein"),
+  I(10,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(10,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const COMIDA = [
+  I(1,"bread","pan","pain","Brot"),
+  I(1,"water","agua","eau","Wasser"),
+  I(1,"apple","manzana","pomme","Apfel"),
+  I(1,"chicken","pollo","poulet","Hähnchen"),
+  I(1,"chips","patatas fritas","frites","Pommes"),
+  I(1,"sandwich","bocadillo","sandwich","Sandwich"),
+  I(2,"breakfast","desayuno","petit-déjeuner","Frühstück"),
+  I(2,"lunch","almuerzo","déjeuner","Mittagessen"),
+  I(2,"dinner","cena","dîner","Abendessen"),
+  I(2,"salad","ensalada","salade","Salat"),
+  I(2,"fish","pescado","poisson","Fisch"),
+  I(2,"rice","arroz","riz","Reis"),
+  I(3,"vegetables","verduras","légumes","Gemüse"),
+  I(3,"fruit","fruta","fruit","Obst"),
+  I(3,"soup","sopa","soupe","Suppe"),
+  I(3,"pasta","pasta","pâtes","Nudeln"),
+  I(3,"meat","carne","viande","Fleisch"),
+  I(3,"dessert","postre","dessert","Nachtisch"),
+  I(4,"to eat","comer","manger","essen"),
+  I(4,"to cook","cocinar","cuisiner","kochen"),
+  I(4,"to order","pedir","commander","bestellen"),
+  I(4,"menu","menú","menu","Speisekarte"),
+  I(4,"bill","la cuenta","addition","Rechnung"),
+  I(4,"delicious","delicioso","délicieux","lecker"),
+  I(5,"healthy","saludable","sain","gesund"),
+  I(5,"unhealthy","poco saludable","malsain","ungesund"),
+  I(5,"vegetarian","vegetariano","végétarien","vegetarisch"),
+  I(5,"allergic","alérgico","allergique","allergisch"),
+  I(5,"ingredients","ingredientes","ingrédients","Zutaten"),
+  I(5,"spicy","picante","épicé","scharf"),
+  I(6,"to prefer","preferir","préférer","bevorzugen"),
+  I(6,"to try","probar","goûter","probieren"),
+  I(6,"to share","compartir","partager","teilen"),
+  I(6,"to taste","saber","avoir le goût","schmecken"),
+  I(6,"portion","ración","portion","Portion"),
+  I(6,"to recommend","recomendar","recommander","empfehlen"),
+  I(7,"balanced diet","dieta equilibrada","alimentation équilibrée","ausgewogene Ernährung"),
+  I(7,"to reduce sugar","reducir el azúcar","réduire le sucre","Zucker reduzieren"),
+  I(7,"to drink enough water","beber suficiente agua","boire assez d'eau","genug Wasser trinken"),
+  I(7,"to avoid junk food","evitar comida basura","éviter la malbouffe","Fast Food vermeiden"),
+  I(7,"to gain weight","engordar","prendre du poids","zunehmen"),
+  I(7,"to lose weight","perder peso","perdre du poids","abnehmen"),
+  I(8,"to improve health","mejorar la salud","améliorer la santé","die Gesundheit verbessern"),
+  I(8,"to be in shape","estar en forma","être en forme","fit sein"),
+  I(8,"to take care of yourself","cuidarse","prendre soin de soi","auf sich achten"),
+  I(8,"habits","hábitos","habitudes","Gewohnheiten"),
+  I(8,"to change habits","cambiar hábitos","changer d'habitudes","Gewohnheiten ändern"),
+  I(8,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(9,"to read labels","leer etiquetas","lire les étiquettes","Etiketten lesen"),
+  I(9,"nutrients","nutrientes","nutriments","Nährstoffe"),
+  I(9,"protein","proteína","protéines","Protein"),
+  I(9,"carbohydrates","hidratos","glucides","Kohlenhydrate"),
+  I(9,"vitamins","vitaminas","vitamines","Vitamine"),
+  I(9,"fibre","fibra","fibres","Ballaststoffe"),
+  I(10,"sustainable food","comida sostenible","alimentation durable","nachhaltiges Essen"),
+  I(10,"to reduce waste","reducir residuos","réduire les déchets","Abfall reduzieren"),
+  I(10,"local products","productos locales","produits locaux","lokale Produkte"),
+  I(10,"to make better choices","elegir mejor","faire de meilleurs choix","bessere Entscheidungen treffen"),
+  I(10,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const BEBIDA = [
+  I(1,"water","agua","eau","Wasser"),
+  I(1,"milk","leche","lait","Milch"),
+  I(1,"tea","té","thé","Tee"),
+  I(1,"coffee","café","café","Kaffee"),
+  I(1,"juice","zumo","jus","Saft"),
+  I(1,"hot chocolate","chocolate caliente","chocolat chaud","heiße Schokolade"),
+  I(2,"still water","agua sin gas","eau plate","stilles Wasser"),
+  I(2,"sparkling water","agua con gas","eau gazeuse","Sprudelwasser"),
+  I(2,"orange juice","zumo de naranja","jus d'orange","Orangensaft"),
+  I(2,"apple juice","zumo de manzana","jus de pomme","Apfelsaft"),
+  I(2,"lemonade","limonada","limonade","Limonade"),
+  I(2,"to drink","beber","boire","trinken"),
+  I(3,"cup","taza","tasse","Tasse"),
+  I(3,"glass","vaso","verre","Glas"),
+  I(3,"bottle","botella","bouteille","Flasche"),
+  I(3,"thirsty","sediento","assoiffé","durstig"),
+  I(3,"to pour","servir","verser","einschenken"),
+  I(3,"to fill","llenar","remplir","füllen"),
+  I(4,"to order","pedir","commander","bestellen"),
+  I(4,"bill","la cuenta","addition","Rechnung"),
+  I(4,"cold","frío","froid","kalt"),
+  I(4,"hot","caliente","chaud","heiß"),
+  I(4,"sweet","dulce","sucré","süß"),
+  I(4,"bitter","amargo","amer","bitter"),
+  I(5,"healthy drink","bebida saludable","boisson saine","gesundes Getränk"),
+  I(5,"energy drink","bebida energética","boisson énergisante","Energy-Drink"),
+  I(5,"to avoid sugar","evitar el azúcar","éviter le sucre","Zucker vermeiden"),
+  I(5,"to stay hydrated","mantenerse hidratado","rester hydraté","hydratisiert bleiben"),
+  I(5,"to prefer","preferir","préférer","bevorzugen"),
+  I(5,"to recommend","recomendar","recommander","empfehlen"),
+  I(6,"ingredients","ingredientes","ingrédients","Zutaten"),
+  I(6,"caffeine","cafeína","caféine","Koffein"),
+  I(6,"to reduce","reducir","réduire","reduzieren"),
+  I(6,"to improve health","mejorar la salud","améliorer la santé","Gesundheit verbessern"),
+  I(6,"habit","hábito","habitude","Gewohnheit"),
+  I(6,"to change habits","cambiar hábitos","changer d'habitudes","Gewohnheiten ändern"),
+  I(7,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(7,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(7,"to be in shape","estar en forma","être en forme","fit sein"),
+  I(7,"balanced diet","dieta equilibrada","alimentation équilibrée","ausgewogene Ernährung"),
+  I(7,"to feel better","sentirse mejor","se sentir mieux","sich besser fühlen"),
+  I(7,"ultimate goal","objetivo final","objectif final","Endziel"),
+  // levels 8–10 are mixed/revision heavy in gameplay anyway; still provide new words:
+  I(8,"sustainable","sostenible","durable","nachhaltig"),
+  I(8,"reusable bottle","botella reutilizable","gourde réutilisable","wiederverwendbare Flasche"),
+  I(8,"to reduce waste","reducir residuos","réduire les déchets","Abfall reduzieren"),
+  I(8,"local products","productos locales","produits locaux","lokale Produkte"),
+  I(8,"to make choices","tomar decisiones","faire des choix","Entscheidungen treffen"),
+  I(8,"awareness","conciencia","prise de conscience","Bewusstsein"),
+  I(9,"to read labels","leer etiquetas","lire les étiquettes","Etiketten lesen"),
+  I(9,"additives","aditivos","additifs","Zusatzstoffe"),
+  I(9,"to limit","limitar","limiter","begrenzen"),
+  I(9,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(9,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(9,"long-term","a largo plazo","à long terme","langfristig"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(10,"to improve","mejorar","améliorer","verbessern"),
+  I(10,"to achieve","lograr","atteindre","erreichen"),
+  I(10,"resilient","resiliente","résilient","resilient"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const UNIFORME = [
+  I(1,"uniform","uniforme","uniforme","Uniform"),
+  I(1,"shirt","camisa","chemise","Hemd"),
+  I(1,"tie","corbata","cravate","Krawatte"),
+  I(1,"jumper","jersey","pull","Pullover"),
+  I(1,"shoes","zapatos","chaussures","Schuhe"),
+  I(1,"bag","mochila","sac","Rucksack"),
+  I(2,"skirt","falda","jupe","Rock"),
+  I(2,"trousers","pantalones","pantalon","Hose"),
+  I(2,"jacket","chaqueta","veste","Jacke"),
+  I(2,"coat","abrigo","manteau","Mantel"),
+  I(2,"to wear","llevar","porter","tragen"),
+  I(2,"comfortable","cómodo","confortable","bequem"),
+  I(3,"strict","estricto","strict","streng"),
+  I(3,"rules","reglas","règles","Regeln"),
+  I(3,"to allow","permitir","permettre","erlauben"),
+  I(3,"to forbid","prohibir","interdire","verbieten"),
+  I(3,"neat/tidy","ordenado","soigné","ordentlich"),
+  I(3,"to check","comprobar","vérifier","prüfen"),
+  I(4,"advantages","ventajas","avantages","Vorteile"),
+  I(4,"disadvantages","desventajas","inconvénients","Nachteile"),
+  I(4,"equality","igualdad","égalité","Gleichheit"),
+  I(4,"identity","identidad","identité","Identität"),
+  I(4,"to express","expresar","exprimer","ausdrücken"),
+  I(4,"to choose","elegir","choisir","wählen"),
+  I(5,"to feel confident","sentirse seguro","se sentir confiant","sich selbstbewusst fühlen"),
+  I(5,"peer pressure","presión de grupo","pression des pairs","Gruppendruck"),
+  I(5,"to complain","quejarse","se plaindre","sich beschweren"),
+  I(5,"to suggest","sugerir","suggérer","vorschlagen"),
+  I(5,"to agree","estar de acuerdo","être d'accord","einverstanden sein"),
+  I(5,"to disagree","no estar de acuerdo","ne pas être d'accord","nicht einverstanden sein"),
+  I(6,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(6,"to respect rules","respetar las reglas","respecter les règles","Regeln respektieren"),
+  I(6,"to be strict","ser estricto","être strict","streng sein"),
+  I(6,"to be fair","ser justo","être juste","fair sein"),
+  I(6,"to fit in","encajar","s'intégrer","dazugehören"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"brand","marca","marque","Marke"),
+  I(7,"cost","coste","coût","Kosten"),
+  I(7,"to save money","ahorrar dinero","économiser de l'argent","Geld sparen"),
+  I(7,"to reduce stress","reducir el estrés","réduire le stress","Stress reduzieren"),
+  I(7,"to focus on learning","concentrarse en aprender","se concentrer sur l'apprentissage","aufs Lernen konzentrieren"),
+  I(7,"discipline","disciplina","discipline","Disziplin"),
+  I(8,"to allow individuality","permitir la individualidad","permettre l'individualité","Individualität erlauben"),
+  I(8,"to protect students","proteger a los alumnos","protéger les élèves","Schüler schützen"),
+  I(8,"to feel proud","sentirse orgulloso","être fier","stolz sein"),
+  I(8,"school spirit","espíritu escolar","esprit d'école","Schulgeist"),
+  I(8,"community","comunidad","communauté","Gemeinschaft"),
+  I(8,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(9,"to set boundaries","poner límites","fixer des limites","Grenzen setzen"),
+  I(9,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(9,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(9,"long-term","a largo plazo","à long terme","langfristig"),
+  I(9,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(9,"resilient","resiliente","résilient","resilient"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(10,"to improve","mejorar","améliorer","verbessern"),
+  I(10,"to achieve","lograr","atteindre","erreichen"),
+  I(10,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const CASA = [
+  I(1,"house","la casa","la maison","das Haus"),
+  I(1,"room","la habitación","la pièce","das Zimmer"),
+  I(1,"kitchen","la cocina","la cuisine","die Küche"),
+  I(1,"bathroom","el baño","la salle de bain","das Badezimmer"),
+  I(1,"bedroom","el dormitorio","la chambre","das Schlafzimmer"),
+  I(1,"living room","el salón","le salon","das Wohnzimmer"),
+  I(2,"garden","el jardín","le jardin","der Garten"),
+  I(2,"garage","el garaje","le garage","die Garage"),
+  I(2,"stairs","las escaleras","les escaliers","die Treppe"),
+  I(2,"door","la puerta","la porte","die Tür"),
+  I(2,"window","la ventana","la fenêtre","das Fenster"),
+  I(2,"to clean","limpiar","nettoyer","putzen"),
+  I(3,"to tidy","ordenar","ranger","aufräumen"),
+  I(3,"to vacuum","pasar la aspiradora","passer l'aspirateur","staubsaugen"),
+  I(3,"to wash dishes","lavar los platos","faire la vaisselle","abwaschen"),
+  I(3,"to do laundry","hacer la colada","faire la lessive","Wäsche waschen"),
+  I(3,"chores","tareas","tâches","Hausarbeit"),
+  I(3,"comfortable","cómodo","confortable","bequem"),
+  I(4,"furniture","los muebles","les meubles","die Möbel"),
+  I(4,"sofa","el sofá","le canapé","das Sofa"),
+  I(4,"table","la mesa","la table","der Tisch"),
+  I(4,"chair","la silla","la chaise","der Stuhl"),
+  I(4,"bed","la cama","le lit","das Bett"),
+  I(4,"wardrobe","el armario","l'armoire","der Kleiderschrank"),
+  I(5,"to share a room","compartir habitación","partager une chambre","ein Zimmer teilen"),
+  I(5,"to move house","mudarse","déménager","umziehen"),
+  I(5,"neighbour","vecino","voisin","Nachbar"),
+  I(5,"neighbourhood","barrio","quartier","Viertel"),
+  I(5,"quiet","tranquilo","calme","ruhig"),
+  I(5,"noisy","ruidoso","bruyant","laut"),
+  I(6,"advantages","ventajas","avantages","Vorteile"),
+  I(6,"disadvantages","desventajas","inconvénients","Nachteile"),
+  I(6,"to improve","mejorar","améliorer","verbessern"),
+  I(6,"to save energy","ahorrar energía","économiser l'énergie","Energie sparen"),
+  I(6,"to recycle","reciclar","recycler","recyceln"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"to be independent","ser independiente","être indépendant","unabhängig sein"),
+  I(7,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(7,"to contribute","contribuir","contribuer","beitragen"),
+  I(7,"to help at home","ayudar en casa","aider à la maison","zu Hause helfen"),
+  I(7,"to set rules","poner reglas","fixer des règles","Regeln aufstellen"),
+  I(7,"to respect","respetar","respecter","respektieren"),
+  I(8,"rent","alquiler","loyer","Miete"),
+  I(8,"to afford","poder permitirse","pouvoir se permettre","sich leisten können"),
+  I(8,"to feel at home","sentirse en casa","se sentir chez soi","sich zu Hause fühlen"),
+  I(8,"support network","red de apoyo","réseau de soutien","Unterstützungsnetz"),
+  I(8,"to seek help","buscar ayuda","chercher de l'aide","Hilfe suchen"),
+  I(8,"to cope","afrontar","faire face","bewältigen"),
+  I(9,"to set boundaries","poner límites","fixer des limites","Grenzen setzen"),
+  I(9,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(9,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(9,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(9,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(9,"resilient","resiliente","résilient","resilient"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(10,"to improve","mejorar","améliorer","verbessern"),
+  I(10,"to achieve","lograr","atteindre","erreichen"),
+  I(10,"long-term","a largo plazo","à long terme","langfristig"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+];
+
+const TIEMPO = [
+  I(1,"sunny","soleado","ensoleillé","sonnig"),
+  I(1,"rainy","lluvioso","pluvieux","regnerisch"),
+  I(1,"cloudy","nublado","nuageux","bewölkt"),
+  I(1,"windy","ventoso","venteux","windig"),
+  I(1,"cold","frío","froid","kalt"),
+  I(1,"hot","caliente","chaud","heiß"),
+  I(2,"storm","tormenta","tempête","Sturm"),
+  I(2,"snow","nieve","neige","Schnee"),
+  I(2,"fog","niebla","brouillard","Nebel"),
+  I(2,"temperature","temperatura","température","Temperatur"),
+  I(2,"forecast","pronóstico","prévision","Vorhersage"),
+  I(2,"season","estación","saison","Jahreszeit"),
+  I(3,"spring","primavera","printemps","Frühling"),
+  I(3,"summer","verano","été","Sommer"),
+  I(3,"autumn","otoño","automne","Herbst"),
+  I(3,"winter","invierno","hiver","Winter"),
+  I(3,"it is raining","llueve","il pleut","es regnet"),
+  I(3,"it is snowing","nieva","il neige","es schneit"),
+  I(4,"to change (weather)","cambiar","changer","sich ändern"),
+  I(4,"to improve","mejorar","s'améliorer","besser werden"),
+  I(4,"to get worse","empeorar","empirer","schlechter werden"),
+  I(4,"to stay at home","quedarse en casa","rester à la maison","zu Hause bleiben"),
+  I(4,"to go out","salir","sortir","rausgehen"),
+  I(4,"to plan","planificar","planifier","planen"),
+  I(5,"climate","clima","climat","Klima"),
+  I(5,"environment","medio ambiente","environnement","Umwelt"),
+  I(5,"pollution","contaminación","pollution","Verschmutzung"),
+  I(5,"to recycle","reciclar","recycler","recyceln"),
+  I(5,"to save energy","ahorrar energía","économiser l'énergie","Energie sparen"),
+  I(5,"to reduce waste","reducir residuos","réduire les déchets","Abfall reduzieren"),
+  I(6,"heatwave","ola de calor","canicule","Hitzewelle"),
+  I(6,"flood","inundación","inondation","Überschwemmung"),
+  I(6,"drought","sequía","sécheresse","Dürre"),
+  I(6,"to affect","afectar","affecter","beeinflussen"),
+  I(6,"to protect","proteger","protéger","schützen"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"to make changes","hacer cambios","faire des changements","Änderungen machen"),
+  I(7,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(7,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(7,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(7,"long-term","a largo plazo","à long terme","langfristig"),
+  I(7,"resilient","resiliente","résilient","resilient"),
+  I(8,"to raise awareness","concienciar","sensibiliser","Bewusstsein schaffen"),
+  I(8,"to influence","influir","influencer","beeinflussen"),
+  I(8,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(8,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(8,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(8,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(9,"sustainable","sostenible","durable","nachhaltig"),
+  I(9,"to improve health","mejorar la salud","améliorer la santé","Gesundheit verbessern"),
+  I(9,"to reduce stress","reducir el estrés","réduire le stress","Stress reduzieren"),
+  I(9,"to be motivated","estar motivado","être motivé","motiviert sein"),
+  I(9,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(9,"to achieve","lograr","atteindre","erreichen"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(10,"to achieve goals","lograr metas","atteindre des objectifs","Ziele erreichen"),
+  I(10,"personal growth","crecimiento personal","développement personnel","persönliches Wachstum"),
+  I(10,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(10,"community","comunidad","communauté","Gemeinschaft"),
+  I(10,"quality of life","calidad de vida","qualité de vie","Lebensqualität"),
+];
+
+const HORA = [
+  I(1,"one o'clock","la una","une heure","ein Uhr"),
+  I(1,"two o'clock","las dos","deux heures","zwei Uhr"),
+  I(1,"half past","y media","et demie","halb"),
+  I(1,"quarter past","y cuarto","et quart","Viertel nach"),
+  I(1,"quarter to","menos cuarto","moins le quart","Viertel vor"),
+  I(1,"today","hoy","aujourd'hui","heute"),
+  I(2,"tomorrow","mañana","demain","morgen"),
+  I(2,"yesterday","ayer","hier","gestern"),
+  I(2,"morning","la mañana","le matin","der Morgen"),
+  I(2,"afternoon","la tarde","l'après-midi","der Nachmittag"),
+  I(2,"evening","la noche","le soir","der Abend"),
+  I(2,"weekend","el fin de semana","le week-end","das Wochenende"),
+  I(3,"Monday","lunes","lundi","Montag"),
+  I(3,"Tuesday","martes","mardi","Dienstag"),
+  I(3,"Wednesday","miércoles","mercredi","Mittwoch"),
+  I(3,"Thursday","jueves","jeudi","Donnerstag"),
+  I(3,"Friday","viernes","vendredi","Freitag"),
+  I(3,"Saturday","sábado","samedi","Samstag"),
+  I(4,"Sunday","domingo","dimanche","Sonntag"),
+  I(4,"appointment","cita","rendez-vous","Termin"),
+  I(4,"to be on time","llegar a tiempo","être à l'heure","pünktlich sein"),
+  I(4,"to be late","llegar tarde","être en retard","zu spät sein"),
+  I(4,"to wait","esperar","attendre","warten"),
+  I(4,"to hurry up","darse prisa","se dépêcher","sich beeilen"),
+  I(5,"to plan","planificar","planifier","planen"),
+  I(5,"schedule","horario","emploi du temps","Zeitplan"),
+  I(5,"to organise","organizar","organiser","organisieren"),
+  I(5,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(5,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(5,"deadline","fecha límite","date limite","Frist"),
+  I(6,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(6,"to be motivated","estar motivado","être motivé","motiviert sein"),
+  I(6,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(6,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(6,"independence","independencia","indépendance","Unabhängigkeit"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"to achieve","lograr","atteindre","erreichen"),
+  I(7,"to improve","mejorar","améliorer","verbessern"),
+  I(7,"to focus","concentrarse","se concentrer","sich konzentrieren"),
+  I(7,"to take a break","tomar una pausa","faire une pause","eine Pause machen"),
+  I(7,"to relax","relajarse","se détendre","sich entspannen"),
+  I(7,"to rest","descansar","se reposer","sich ausruhen"),
+  I(8,"long-term","a largo plazo","à long terme","langfristig"),
+  I(8,"habit","hábito","habitude","Gewohnheit"),
+  I(8,"to change habits","cambiar hábitos","changer d'habitudes","Gewohnheiten ändern"),
+  I(8,"to reduce stress","reducir el estrés","réduire le stress","Stress reduzieren"),
+  I(8,"well-being","bienestar","bien-être","Wohlbefinden"),
+  I(8,"to cope","afrontar","faire face","bewältigen"),
+  I(9,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(9,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(9,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(9,"community","comunidad","communauté","Gemeinschaft"),
+  I(9,"quality of life","calidad de vida","qualité de vie","Lebensqualität"),
+  I(9,"resilient","resiliente","résilient","resilient"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(10,"to achieve goals","lograr metas","atteindre des objectifs","Ziele erreichen"),
+  I(10,"personal growth","crecimiento personal","développement personnel","persönliches Wachstum"),
+  I(10,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(10,"self-discipline","autodisciplina","autodiscipline","Selbstdisziplin"),
+  I(10,"independence","independencia","indépendance","Unabhängigkeit"),
+];
+
+const DIRECCIONES = [
+  I(1,"left","izquierda","gauche","links"),
+  I(1,"right","derecha","droite","rechts"),
+  I(1,"straight on","todo recto","tout droit","geradeaus"),
+  I(1,"near","cerca","près","nahe"),
+  I(1,"far","lejos","loin","weit"),
+  I(1,"here","aquí","ici","hier"),
+  I(2,"there","allí","là-bas","dort"),
+  I(2,"corner","esquina","coin","Ecke"),
+  I(2,"traffic lights","semáforos","feux","Ampel"),
+  I(2,"roundabout","rotonda","rond-point","Kreisverkehr"),
+  I(2,"crossing","cruce","passage","Überweg"),
+  I(2,"map","mapa","carte","Karte"),
+  I(3,"to turn","girar","tourner","abbiegen"),
+  I(3,"to cross","cruzar","traverser","überqueren"),
+  I(3,"to continue","continuar","continuer","weitergehen"),
+  I(3,"to stop","parar","s'arrêter","anhalten"),
+  I(3,"to ask","preguntar","demander","fragen"),
+  I(3,"to explain","explicar","expliquer","erklären"),
+  I(4,"bus stop","parada de autobús","arrêt de bus","Bushaltestelle"),
+  I(4,"station","estación","gare","Bahnhof"),
+  I(4,"supermarket","supermercado","supermarché","Supermarkt"),
+  I(4,"pharmacy","farmacia","pharmacie","Apotheke"),
+  I(4,"post office","oficina de correos","poste","Post"),
+  I(4,"bank","banco","banque","Bank"),
+  I(5,"to get lost","perderse","se perdre","sich verlaufen"),
+  I(5,"to find","encontrar","trouver","finden"),
+  I(5,"to follow","seguir","suivre","folgen"),
+  I(5,"to show","mostrar","montrer","zeigen"),
+  I(5,"sign","señal","panneau","Schild"),
+  I(5,"directions","direcciones","indications","Wegbeschreibung"),
+  I(6,"pedestrian","peatón","piéton","Fußgänger"),
+  I(6,"pedestrian street","calle peatonal","rue piétonne","Fußgängerzone"),
+  I(6,"public transport","transporte público","transports en commun","öffentlicher Verkehr"),
+  I(6,"to plan route","planificar la ruta","planifier l'itinéraire","Route planen"),
+  I(6,"to save time","ahorrar tiempo","gagner du temps","Zeit sparen"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"to be careful","tener cuidado","faire attention","vorsichtig sein"),
+  I(7,"dangerous","peligroso","dangereux","gefährlich"),
+  I(7,"safe","seguro","sûr","sicher"),
+  I(7,"to avoid","evitar","éviter","vermeiden"),
+  I(7,"to reduce traffic","reducir el tráfico","réduire la circulation","Verkehr reduzieren"),
+  I(7,"to improve","mejorar","améliorer","verbessern"),
+  I(8,"advantages","ventajas","avantages","Vorteile"),
+  I(8,"disadvantages","desventajas","inconvénients","Nachteile"),
+  I(8,"to suggest","sugerir","suggérer","vorschlagen"),
+  I(8,"to recommend","recomendar","recommander","empfehlen"),
+  I(8,"to take responsibility","asumir la responsabilidad","assumer la responsabilité","Verantwortung übernehmen"),
+  I(8,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(9,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(9,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(9,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(9,"resilient","resiliente","résilient","resilient"),
+  I(9,"community","comunidad","communauté","Gemeinschaft"),
+  I(9,"quality of life","calidad de vida","qualité de vie","Lebensqualität"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(10,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(10,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(10,"to achieve","lograr","atteindre","erreichen"),
+  I(10,"long-term","a largo plazo","à long terme","langfristig"),
+  I(10,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+];
+
+const ASIGNATURAS = [
+  I(1,"maths","matemáticas","maths","Mathe"),
+  I(1,"English","inglés","anglais","Englisch"),
+  I(1,"Irish","irlandés","irlandais","Irisch"),
+  I(1,"Spanish","español","espagnol","Spanisch"),
+  I(1,"history","historia","histoire","Geschichte"),
+  I(1,"geography","geografía","géographie","Erdkunde"),
+  I(2,"science","ciencias","sciences","Naturwissenschaften"),
+  I(2,"biology","biología","biologie","Biologie"),
+  I(2,"chemistry","química","chimie","Chemie"),
+  I(2,"physics","física","physique","Physik"),
+  I(2,"music","música","musique","Musik"),
+  I(2,"art","arte","arts plastiques","Kunst"),
+  I(3,"PE","educación física","EPS","Sport"),
+  I(3,"technology","tecnología","technologie","Technik"),
+  I(3,"computer science","informática","informatique","Informatik"),
+  I(3,"business","empresa","commerce","Wirtschaft"),
+  I(3,"religion","religión","religion","Religion"),
+  I(3,"home economics","economía doméstica","économie familiale","Hauswirtschaft"),
+  I(4,"timetable","horario","emploi du temps","Stundenplan"),
+  I(4,"homework","deberes","devoirs","Hausaufgaben"),
+  I(4,"project","proyecto","projet","Projekt"),
+  I(4,"exam","examen","examen","Prüfung"),
+  I(4,"to study","estudiar","étudier","lernen"),
+  I(4,"to revise","repasar","réviser","wiederholen"),
+  I(5,"to choose subjects","elegir asignaturas","choisir des matières","Fächer wählen"),
+  I(5,"optional","optativo","optionnel","Wahlfach"),
+  I(5,"compulsory","obligatorio","obligatoire","Pflicht"),
+  I(5,"to concentrate","concentrarse","se concentrer","sich konzentrieren"),
+  I(5,"to improve","mejorar","s'améliorer","sich verbessern"),
+  I(5,"to practise","practicar","pratiquer","üben"),
+  I(6,"stress","estrés","stress","Stress"),
+  I(6,"pressure","presión","pression","Druck"),
+  I(6,"confidence","confianza","confiance","Selbstvertrauen"),
+  I(6,"to manage time","gestionar el tiempo","gérer son temps","Zeit einteilen"),
+  I(6,"to set priorities","establecer prioridades","fixer des priorités","Prioritäten setzen"),
+  I(6,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(7,"skills","habilidades","compétences","Fähigkeiten"),
+  I(7,"career","carrera","carrière","Karriere"),
+  I(7,"future plans","planes de futuro","projets d'avenir","Zukunftspläne"),
+  I(7,"to prepare","prepararse","se préparer","sich vorbereiten"),
+  I(7,"to learn from mistakes","aprender de los errores","apprendre de ses erreurs","aus Fehlern lernen"),
+  I(7,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+  I(8,"to be motivated","estar motivado","être motivé","motiviert sein"),
+  I(8,"to make an effort","esforzarse","faire des efforts","sich anstrengen"),
+  I(8,"to achieve","lograr","atteindre","erreichen"),
+  I(8,"to support others","apoyar a los demás","soutenir les autres","andere unterstützen"),
+  I(8,"to work together","trabajar juntos","travailler ensemble","zusammenarbeiten"),
+  I(8,"to make a difference","marcar la diferencia","faire la différence","etwas bewirken"),
+  I(9,"long-term","a largo plazo","à long terme","langfristig"),
+  I(9,"independence","independencia","indépendance","Unabhängigkeit"),
+  I(9,"self-discipline","autodisciplina","autodiscipline","Selbstdisziplin"),
+  I(9,"well-being","bienestar","bien-être","Wohlbefinden"),
+  I(9,"resilient","resiliente","résilient","resilient"),
+  I(9,"quality of life","calidad de vida","qualité de vie","Lebensqualität"),
+  I(10,"ultimate goal","objetivo final","objectif final","Endziel"),
+  I(10,"personal growth","crecimiento personal","développement personnel","persönliches Wachstum"),
+  I(10,"to set goals","ponerse metas","se fixer des objectifs","Ziele setzen"),
+  I(10,"to improve","mejorar","améliorer","verbessern"),
+  I(10,"to achieve goals","lograr metas","atteindre des objectifs","Ziele erreichen"),
+  I(10,"responsibility","responsabilidad","responsabilité","Verantwortung"),
+];
+
+// Map theme -> items
+const ITEMS_BY_THEME = {
+  family: FAMILY,
+  daily: DAILY,
+  school: SCHOOL,
+  yourself: YOURSELF,
+  barrio: BARRIO,
+  amigos: AMIGOS,
+  comida: COMIDA,
+  bebida: BEBIDA,
+  uniforme: UNIFORME,
+  casa: CASA,
+  tiempo: TIEMPO,
+  hora: HORA,
+  direcciones: DIRECCIONES,
+  asignaturas: ASIGNATURAS,
 };
 
-// Amigos theme id is "amigos" in your list; we already used it above for "amigos" or "amigos" vs "amigos"?
-// To keep it consistent with THEME_LIST ids:
-ES.amigos = ES.amigos || ES.amigos;
-ES.amigos = ES.amigos || ES.amigos;
+// ---------- Progress helpers ----------
+const PROG_KEY = (lang, themeId)=> `jc_tower_prog::${lang}::${themeId}`;
 
-// NOTE: "amigos" vs "amigos" already correct. "amigos" dataset is above as ES.amigos? We used "amigos" id in list,
-// but created data under "amigos" is not yet. We'll alias amigos = amigos-data:
-ES.amigos = ES.amigos || ES.amigos; // harmless
-
-// Actually map: we named the friends dataset "amigos" in THEME_LIST but wrote it above under "amigos"?? We wrote "amigos" section as "amigos:"? No, we wrote "amigos:" as "amigos:"? We wrote "amigos:" as "amigos:"? In this file we wrote it as "amigos:"? We wrote it as "amigos:"? 
-// To avoid mistakes, we will export a resolver that safely returns empty if missing.
-
-const DATA = {
-  es: ES,
-  fr: {}, // to fill later
-  de: {}, // to fill later
-  en: {}, // to fill later
-};
-
-function emptyLevelObj(maxLevel=10){
-  const o = {};
-  for(let i=1;i<=maxLevel;i++) o[i] = [];
-  return o;
-}
-
-export function hasAnyData(lang, themeId){
-  const lvls = DATA?.[lang]?.[themeId];
-  if(!lvls) return false;
-  for(const arr of Object.values(lvls)) if(arr && arr.length) return true;
-  return false;
+function totalWordsForTheme(themeId){
+  return (ITEMS_BY_THEME[themeId] || []).length;
 }
 
 export function maxLevelFor(lang, themeId){
-  const lvls = DATA?.[lang]?.[themeId] || emptyLevelObj(10);
-  return Math.max(...Object.keys(lvls).map(n=>parseInt(n,10)));
+  // always 10, but keep safe if you edit later:
+  const arr = ITEMS_BY_THEME[themeId] || [];
+  return Math.max(1, ...arr.map(x=>x.lvl||1));
 }
-
-export function totalWordsFor(lang, themeId){
-  const lvls = DATA?.[lang]?.[themeId] || emptyLevelObj(10);
-  let total = 0;
-  for(const arr of Object.values(lvls)) total += (arr?.length || 0);
-  return total;
-}
-
-const PROG_KEY = (lang, themeId)=> `jc_tower_prog::${lang}::${themeId}`;
 
 export function themeProgress(lang, themeId){
   const raw = JSON.parse(localStorage.getItem(PROG_KEY(lang, themeId)) || "{}");
   const level = raw.level ?? 1;
   const cleared = raw.cleared ?? 0;
-  const total = totalWordsFor(lang, themeId);
+  const total = totalWordsForTheme(themeId);
   const maxLevel = maxLevelFor(lang, themeId);
   const pct = total ? Math.round((cleared/total)*100) : 0;
   return { level, cleared, total, maxLevel, pct };
@@ -1582,8 +1077,7 @@ export function resetAll(){
 }
 
 export function overallProgress(lang){
-  let total = 0;
-  let cleared = 0;
+  let total=0, cleared=0;
   for(const t of THEME_LIST){
     const tp = themeProgress(lang, t.id);
     total += tp.total;
@@ -1593,21 +1087,35 @@ export function overallProgress(lang){
   return { total, cleared, pct };
 }
 
-// Mix level = revision from previous 3 levels (deduped by first answer)
+// ---------- Level building ----------
+// Normal level: items where item.lvl === level
+// Mix level: pool from previous 3 levels (deduped by first answer)
 export function getLevelEntries(lang, themeId, level, isMix){
-  const lvls = DATA?.[lang]?.[themeId] || emptyLevelObj(10);
-  if(!isMix) return [...(lvls[level] || [])];
+  const all = ITEMS_BY_THEME[themeId] || [];
 
-  const from = Math.max(1, level - 3);
-  const pool = [];
-  for(let k=from;k<level;k++){
-    pool.push(...(lvls[k] || []));
+  const getAnswers = (it)=>{
+    if(lang === "es") return it.es;
+    if(lang === "fr") return it.fr;
+    if(lang === "de") return it.de;
+    return it.enAns || [it.en];
+  };
+
+  let pool = [];
+  if(!isMix){
+    pool = all.filter(it => (it.lvl||1) === level).map(it=>({ en: it.en, answers: getAnswers(it) }));
+  }else{
+    const from = Math.max(1, level-3);
+    pool = all.filter(it => (it.lvl||1) >= from && (it.lvl||1) < level)
+      .map(it=>({ en: it.en, answers: getAnswers(it) }));
+
+    const seen = new Set();
+    pool = pool.filter(it=>{
+      const k = (it.answers?.[0] || it.en || "").toLowerCase();
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
   }
-  const seen = new Set();
-  return pool.filter(it=>{
-    const key = (it.answers?.[0] || it.en || "").toLowerCase();
-    if(seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+
+  return pool;
 }
