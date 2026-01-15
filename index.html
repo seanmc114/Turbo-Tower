@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JC Tower Hub</title>
+  <style>
+    :root{
+      --card: rgba(255,255,255,0.92);
+      --line: rgba(8,12,24,0.14);
+      --text: rgba(8,12,24,0.92);
+      --muted: rgba(8,12,24,0.62);
+      --shadow: 0 18px 60px rgba(10,15,30,0.16);
+      --radius: 18px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--font); color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 12%, rgba(255,190,90,0.22), transparent 62%),
+        radial-gradient(900px 600px at 85% 20%, rgba(40,200,120,0.18), transparent 62%),
+        radial-gradient(900px 600px at 50% 95%, rgba(140,60,255,0.10), transparent 62%),
+        linear-gradient(180deg, #fff7e6, #eafbf3);
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* Crest watermark behind everything */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:url("assets/crest.png");
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:min(72vw, 520px);
+      opacity:0.10;
+      filter: saturate(1.05) contrast(1.05);
+      pointer-events:none;
+      z-index:0;
+    }
+
+    header{
+      position:relative;
+      z-index:1;
+      max-width:1200px; margin:0 auto; padding:18px 18px 6px;
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    h1{margin:0; font-size:26px; letter-spacing:-0.4px; font-weight:1000}
+    .sub{margin:6px 0 0; color:var(--muted); font-weight:900; font-size:13px}
+
+    .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--text);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:1000;
+      box-shadow: 0 10px 30px rgba(10,15,30,0.10);
+    }
+    select{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      background:#fff;
+      font-weight:1000;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(10,15,30,0.10);
+    }
+
+    main{
+      position:relative;
+      z-index:1;
+      max-width:1200px; margin:0 auto; padding: 10px 18px 18px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .barWrap{flex:1; min-width:220px}
+    .bar{
+      width:100%; height:14px; border-radius:999px;
+      border:1px solid rgba(8,12,24,0.14);
+      background: rgba(255,255,255,0.70);
+      overflow:hidden;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(40,200,120,0.85), rgba(255,190,90,0.85));
+    }
+    .pct{font-weight:1000; color:var(--muted); font-size:13px}
+
+    .grid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (max-width: 980px){ .grid{grid-template-columns: repeat(2, minmax(0, 1fr));} }
+    @media (max-width: 520px){ .grid{grid-template-columns: 1fr;} }
+
+    .tile{
+      position:relative;
+      border-radius: 18px;
+      border:1px solid rgba(8,12,24,0.14);
+      overflow:hidden;
+      cursor:pointer;
+      min-height: 148px;
+      box-shadow: 0 14px 40px rgba(10,15,30,0.14);
+      background:#fff;
+      transition: transform .10s ease;
+    }
+    .tile:hover{transform: translateY(-1px)}
+    .img{
+      position:absolute; inset:0;
+      background-size: cover;
+      background-position: 50% 50%;
+      filter: saturate(1.15) contrast(1.05);
+    }
+    .img::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.42));
+    }
+    .content{
+      position:absolute; inset:auto 12px 12px 12px;
+      color:#fff;
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-end;
+    }
+    .name{font-weight:1000; font-size:16px; text-shadow: 0 8px 18px rgba(0,0,0,0.25)}
+    .small{font-weight:1000; font-size:12px; opacity:0.95}
+    .badge{
+      position:absolute;
+      top:10px; left:10px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.20);
+      backdrop-filter: blur(6px);
+      color:#fff;
+      font-weight:1000;
+      font-size:12px;
+    }
+    .disabled{
+      cursor:not-allowed;
+      filter: grayscale(0.15);
+      opacity: 0.85;
+    }
+
+    footer{
+      position:relative;
+      z-index:1;
+      text-align:center;
+      padding: 10px 14px 16px;
+      color: rgba(8,12,24,0.55);
+      font-weight:1000;
+      letter-spacing:0.3px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>JC Tower Hub</h1>
+      <div class="sub">Pick a theme → clear Level 1→2→… → ULTIMATE CLEAR. Mix/Revision every 4th level.</div>
+    </div>
+    <div class="controls">
+      <select id="lang">
+        <option value="es">Spanish</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="en">English</option>
+      </select>
+      <button class="btn" id="resetAll">Reset progress (this device)</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="row">
+        <div style="min-width:260px">
+          <div style="font-weight:1000">Overall progress</div>
+          <div class="pct" id="overallTxt">0% complete</div>
+        </div>
+        <div class="barWrap">
+          <div class="bar"><div class="fill" id="overallFill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>© 2026 Synge Street Games Lab</footer>
+
+  <script type="module">
+    import { THEME_LIST, tileCoverCss, overallProgress, themeProgress, resetAll, hasAnyData } from "./themes.js";
+
+    const grid = document.getElementById("grid");
+    const overallFill = document.getElementById("overallFill");
+    const overallTxt = document.getElementById("overallTxt");
+    const langSel = document.getElementById("lang");
+
+    const savedLang = localStorage.getItem("jc_tower_lang") || "es";
+    langSel.value = savedLang;
+
+    langSel.addEventListener("change", ()=>{
+      localStorage.setItem("jc_tower_lang", langSel.value);
+      render();
+    });
+
+    document.getElementById("resetAll").addEventListener("click", ()=>{
+      if(confirm("Reset ALL progress on this device?")){
+        resetAll();
+        render();
+      }
+    });
+
+    function render(){
+      const lang = langSel.value;
+
+      // overall
+      const o = overallProgress(lang);
+      overallFill.style.width = o.pct + "%";
+      overallTxt.textContent = `${o.pct}% complete (${o.cleared}/${o.total} words cleared)`;
+
+      // tiles
+      grid.innerHTML = "";
+      for(const t of THEME_LIST){
+        const p = themeProgress(lang, t.id);
+        const playable = hasAnyData(lang, t.id);
+
+        const div = document.createElement("div");
+        div.className = "tile" + (playable ? "" : " disabled");
+        div.innerHTML = `
+          <div class="img" style="background-image:${tileCoverCss(t.id)}"></div>
+          <div class="badge">${lang.toUpperCase()}</div>
+          <div class="content">
+            <div>
+              <div class="name">${t.title}</div>
+              <div class="small">${p.cleared}/${p.total} · Level ${p.level}/${p.maxLevel}${playable ? "" : " · coming soon"}</div>
+            </div>
+            <div class="small">${p.pct}%</div>
+          </div>
+        `;
+
+        if(playable){
+          div.addEventListener("click", ()=>{
+            location.href = `tower.html?lang=${encodeURIComponent(lang)}&theme=${encodeURIComponent(t.id)}`;
+          });
+        } else {
+          div.addEventListener("click", ()=>{
+            alert("This language set is not filled yet. Switch to Spanish for now.");
+          });
+        }
+        grid.appendChild(div);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
