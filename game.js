@@ -1,5 +1,13 @@
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-import { THEME_LIST, getThemeTitle, getLevelEntries, maxLevelFor, themeProgress, saveProgress, resetProgress, tileCoverCss } from "./themes.js";
+import {
+  tileCoverCss,
+  getThemeTitle,
+  getLevelEntries,
+  maxLevelFor,
+  themeProgress,
+  saveProgress,
+  resetProgress
+} from "./themes.js";
 
 const ACC = {"á":"a","é":"e","í":"i","ó":"o","ú":"u","ü":"u","Á":"A","É":"E","Í":"I","Ó":"O","Ú":"U","Ü":"U"};
 const stripAccents = (s)=> String(s).split("").map(ch=>ACC[ch]||ch).join("");
@@ -26,7 +34,6 @@ export function startTower(){
   const themeFill = $("themeFill");
   const themeTxt = $("themeTxt");
   const promptEl = $("prompt");
-  const hintEl = $("hint");
   const typed = $("typed");
   const msg = $("msg");
   const list = $("list");
@@ -71,7 +78,6 @@ export function startTower(){
     msg.textContent = "";
   }
 
-  // ---------- Progress UI ----------
   function renderThemeProgress(){
     prog = themeProgress(LANG, THEME_ID);
     themeFill.style.width = prog.pct + "%";
@@ -88,15 +94,11 @@ export function startTower(){
     leftEl.textContent = String(remaining.length);
   }
   function setPrompt(){
-    if(!remaining.length){
-      promptEl.textContent = "Level complete!";
-      return;
-    }
+    if(!remaining.length){ promptEl.textContent = "Level complete!"; return; }
     const cur = remaining[0];
     promptEl.textContent = `Spell: ${cur.en}${isMixLevel(currentLevel) ? " (MIX)" : ""}`;
   }
 
-  // ---------- Scoring ----------
   function scoreFor(answer){
     const base = 140 + Math.min(240, norm(answer).replace(/ /g,"").length * 18);
     const multi = 1 + Math.min(5, Math.floor(streak/3))*0.5;
@@ -112,7 +114,6 @@ export function startTower(){
     });
   }
 
-  // ---------- Helpers ----------
   function shuffle(arr){
     for(let i=arr.length-1;i>0;i--){
       const j = Math.floor(Math.random()*(i+1));
@@ -121,7 +122,7 @@ export function startTower(){
     return arr;
   }
 
-  // ---------- FX Canvas ----------
+  // FX Canvas confetti
   const fx = $("fx");
   const fxCtx = fx.getContext("2d");
   const confetti = [];
@@ -164,7 +165,7 @@ export function startTower(){
     }
   }
 
-  // ---------- THREE.js ----------
+  // THREE.js tower
   const stage = $("stage");
   const renderer = new THREE.WebGLRenderer({ canvas: stage, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -181,13 +182,17 @@ export function startTower(){
   scene.add(blockGroup);
 
   const target = new THREE.Vector3(0, 2.4, 0);
-  let radius = 25;
+  const isPhone = ()=> window.matchMedia && window.matchMedia("(max-width: 520px)").matches;
+
+  // ✅ phone “zoomed in” fix:
+  let radius = isPhone() ? 34 : 25;                   // zoom OUT on phones
   let theta = Math.PI * 0.25;
-  let phi   = Math.PI * 0.26;
-  const phiMin = Math.PI * 0.12;
-  const phiMax = Math.PI * 0.72;
-  const radMin = 15;
-  const radMax = 40;
+  let phi   = isPhone() ? Math.PI * 0.36 : Math.PI * 0.28;  // a touch more top-down on phones
+
+  const phiMin = Math.PI * 0.10;
+  const phiMax = Math.PI * 0.78;
+  const radMin = 14;
+  const radMax = 48;
 
   function updateCamera(){
     const sinPhi = Math.sin(phi);
@@ -202,8 +207,12 @@ export function startTower(){
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  const GRID=7, HEIGHT=7, SIZE=1.24, GAP=0.14;
-  const origin = new THREE.Vector3(-(GRID-1)*(SIZE+GAP)/2, 0, -(GRID-1)*(SIZE+GAP)/2);
+  function getDims(){
+    // ✅ smaller blocks + smaller grid on phone
+    return isPhone()
+      ? { GRID:6, HEIGHT:6, SIZE:1.00, GAP:0.13 }
+      : { GRID:7, HEIGHT:7, SIZE:1.22, GAP:0.14 };
+  }
 
   function makeLetterTexture(letter){
     const c = document.createElement("canvas");
@@ -223,6 +232,7 @@ export function startTower(){
   }
 
   function makeBlock(letter, pos){
+    const { SIZE } = getDims();
     const geo = new THREE.BoxGeometry(SIZE, SIZE, SIZE);
     const sideCol = new THREE.Color(`hsl(${Math.random()*360},85%,62%)`);
     const side = new THREE.MeshStandardMaterial({ color: sideCol, roughness:0.55, metalness:0.06 });
@@ -269,15 +279,16 @@ export function startTower(){
     selectedBlocks = [];
   }
 
+  // ✅ explode + remove
   function explodeAndRemove(blocks){
     if(!blocks?.length) return;
     const rect = stage.getBoundingClientRect();
-    burst2D(rect.width*0.52, rect.height*0.32, 90);
+    burst2D(rect.width*0.52, rect.height*0.32, 110);
 
     const start = performance.now();
-    const dur = 680;
-    const vels = blocks.map(()=> new THREE.Vector3((Math.random()*2-1)*0.09, 0.22+Math.random()*0.12, (Math.random()*2-1)*0.09));
-    const spins = blocks.map(()=> new THREE.Vector3(0.12+Math.random()*0.22, 0.16+Math.random()*0.26, 0.10+Math.random()*0.22));
+    const dur = 720;
+    const vels = blocks.map(()=> new THREE.Vector3((Math.random()*2-1)*0.10, 0.24+Math.random()*0.14, (Math.random()*2-1)*0.10));
+    const spins = blocks.map(()=> new THREE.Vector3(0.14+Math.random()*0.26, 0.18+Math.random()*0.30, 0.12+Math.random()*0.26));
 
     blocks.forEach(b=>{
       b.userData.selected = false;
@@ -322,6 +333,10 @@ export function startTower(){
 
   function buildTower(){
     while(blockGroup.children.length) blockGroup.remove(blockGroup.children[0]);
+
+    const { GRID, HEIGHT, SIZE, GAP } = getDims();
+    const origin = new THREE.Vector3(-(GRID-1)*(SIZE+GAP)/2, 0, -(GRID-1)*(SIZE+GAP)/2);
+
     const bag = randomLetterBag();
     const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
 
@@ -336,14 +351,14 @@ export function startTower(){
       }
     }
 
-    // shrink through levels
+    // tower shrinks as levels progress
     const t = (currentLevel - 1) / Math.max(1,(maxLevel-1));
-    const scale = 1.05 - t * 0.35;
+    const scale = 1.07 - t * 0.36;
     blockGroup.scale.set(scale, scale, scale);
     blockGroup.position.y = -0.10 * (1 - scale);
   }
 
-  // Controls (rotation fixed: NOT inverted)
+  // ✅ rotation NOT inverted
   let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener("pointerdown",(e)=>{
     dragging=true; moved=0;
@@ -379,7 +394,7 @@ export function startTower(){
   function resize(){
     const rect = stage.getBoundingClientRect();
     const w = Math.max(320, Math.floor(rect.width));
-    const h = Math.max(520, Math.floor(rect.height));
+    const h = Math.max(420, Math.floor(rect.height));
     renderer.setSize(w,h,false);
     camera.aspect = w/h;
     camera.updateProjectionMatrix();
@@ -388,8 +403,11 @@ export function startTower(){
     fx.height = Math.floor(h*dpr);
     fx.style.width = w+"px";
     fx.style.height = h+"px";
+
+    // keep phone zoom-out feeling if orientation changes
+    if(isPhone()){ radius = 34; phi = Math.max(phiMin, Math.min(phiMax, Math.PI*0.36)); }
   }
-  window.addEventListener("resize", resize);
+  window.addEventListener("resize", ()=>{ resize(); buildTower(); });
 
   function animate(){
     requestAnimationFrame(animate);
@@ -398,20 +416,14 @@ export function startTower(){
     renderFX();
   }
 
-  // ---------- Campaign Logic ----------
   function loadLevel(lvl){
     currentLevel = Math.max(1, Math.min(maxLevel, lvl));
     lvlEl.textContent = String(currentLevel) + (isMixLevel(currentLevel) ? " (MIX)" : "");
     clearMsg();
-    hintEl.textContent = "Accents not required (ñ counts as n). Spaces allowed.";
     typed.value = "";
     clearSelection();
 
     remaining = shuffle(getLevelEntries(LANG, THEME_ID, currentLevel, isMixLevel(currentLevel)));
-    if(remaining.length === 0){
-      setMsg("No vocab added for this level yet.", "bad");
-      return;
-    }
     renderList();
     setPrompt();
     buildTower();
@@ -419,16 +431,12 @@ export function startTower(){
   }
 
   function advanceLevel(){
-    // Save progress at end of level
-    saveProgress(LANG, THEME_ID, { level: Math.min(currentLevel+1, maxLevel) });
-
     if(currentLevel >= maxLevel){
-      setMsg("🏁 ULTIMATE CLEAR! Theme completed. Go back to the Hub for another tower.", "good");
-      burst2D(stage.getBoundingClientRect().width*0.5, stage.getBoundingClientRect().height*0.32, 140);
-      renderThemeProgress();
+      setMsg("🏁 ULTIMATE CLEAR! Theme completed. Back to Hub for another tower.", "good");
+      const rect = stage.getBoundingClientRect();
+      burst2D(rect.width*0.5, rect.height*0.32, 180);
       return;
     }
-
     currentLevel += 1;
     saveProgress(LANG, THEME_ID, { level: currentLevel });
     loadLevel(currentLevel);
@@ -436,10 +444,7 @@ export function startTower(){
 
   function submit(){
     const raw = typed.value.trim();
-    if(!raw){
-      setMsg("Type an answer (or click blocks) first.", "bad");
-      return;
-    }
+    if(!raw){ setMsg("Type an answer (or click blocks) first.", "bad"); return; }
 
     const idx = remaining.findIndex(it => isCorrect(raw, it.answers));
     if(idx >= 0){
@@ -456,11 +461,10 @@ export function startTower(){
 
       setMsg(`✅ Correct (${matched.en}) +${pts}`, "good");
 
-      if(selectedBlocks.length){
-        explodeAndRemove([...selectedBlocks]);
-      } else {
+      if(selectedBlocks.length) explodeAndRemove([...selectedBlocks]);
+      else {
         const rect = stage.getBoundingClientRect();
-        burst2D(rect.width*0.52, rect.height*0.32, 80);
+        burst2D(rect.width*0.52, rect.height*0.32, 95);
       }
 
       typed.value = "";
@@ -471,7 +475,7 @@ export function startTower(){
 
       if(remaining.length === 0){
         setMsg(`🎉 Level ${currentLevel} cleared! Moving on…`, "good");
-        setTimeout(()=> advanceLevel(), 700);
+        setTimeout(()=> advanceLevel(), 720);
       }
       return;
     }
@@ -499,7 +503,7 @@ export function startTower(){
     scoreEl.textContent = String(score);
 
     const a0 = norm(cur.answers[0]);
-    hintEl.textContent = `Hint: starts with “${(a0[0]||"").toUpperCase()}” · length ${a0.replace(/ /g,"").length} (−80)`;
+    setMsg(`Hint: starts with “${(a0[0]||"").toUpperCase()}” · length ${a0.replace(/ /g,"").length} (−80)`, "");
   }
 
   function shuffleTower(){
@@ -512,11 +516,7 @@ export function startTower(){
 
   submitBtn.addEventListener("click", submit);
   undoBtn.addEventListener("click", undoLast);
-  clearBtn.addEventListener("click", ()=>{
-    typed.value = "";
-    clearSelection();
-    clearMsg();
-  });
+  clearBtn.addEventListener("click", ()=>{ typed.value = ""; clearSelection(); clearMsg(); });
   hintBtn.addEventListener("click", useHint);
   shuffleBtn.addEventListener("click", shuffleTower);
 
@@ -526,9 +526,25 @@ export function startTower(){
     if(e.key==="Escape"){ typed.value=""; clearSelection(); clearMsg(); }
   });
 
-  // Boot
-  resize();
+  // boot
+  function bootResize(){
+    const rect = stage.getBoundingClientRect();
+    const w = Math.max(320, Math.floor(rect.width));
+    const h = Math.max(420, Math.floor(rect.height));
+    renderer.setSize(w,h,false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    const dpr = window.devicePixelRatio || 1;
+    fx.width = Math.floor(w*dpr);
+    fx.height = Math.floor(h*dpr);
+    fx.style.width = w+"px";
+    fx.style.height = h+"px";
+  }
+  bootResize();
   updateCamera();
   animate();
   loadLevel(currentLevel);
+
+  // progress init
+  saveProgress(LANG, THEME_ID, { level: currentLevel });
 }
