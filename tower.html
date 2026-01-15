@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JC Tower</title>
+  <style>
+    :root{
+      --card: rgba(255,255,255,0.92);
+      --line: rgba(8,12,24,0.14);
+      --text: rgba(8,12,24,0.94);
+      --muted: rgba(8,12,24,0.62);
+      --shadow: 0 18px 60px rgba(10,15,30,0.16);
+      --radius: 18px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--font); color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 12%, rgba(255,190,90,0.22), transparent 62%),
+        radial-gradient(900px 600px at 85% 20%, rgba(40,200,120,0.18), transparent 62%),
+        radial-gradient(900px 600px at 50% 95%, rgba(140,60,255,0.10), transparent 62%),
+        linear-gradient(180deg, #fff7e6, #eafbf3);
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* Crest watermark */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:url("assets/crest.png");
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:min(74vw, 560px);
+      opacity:0.10;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    header{
+      position:relative; z-index:1;
+      max-width:1280px; margin:0 auto; padding:16px 18px 8px;
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .sub{color:var(--muted); font-weight:900; font-size:13px}
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--text);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:1000;
+      box-shadow: 0 10px 30px rgba(10,15,30,0.10);
+    }
+
+    main{
+      position:relative; z-index:1;
+      max-width:1280px; margin:0 auto; padding: 6px 18px 18px;
+      display:grid; grid-template-columns: 1.55fr 0.65fr; gap:14px;
+    }
+    @media (max-width:980px){ main{grid-template-columns:1fr;} }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .canvasWrap{padding:0; overflow:hidden; position:relative; min-height:720px;}
+    .canvasBG{
+      position:absolute; inset:0; border-radius:var(--radius);
+      background-size:cover; background-position:50% 55%;
+      filter:saturate(1.18) contrast(1.06);
+    }
+    .canvasBG::after{
+      content:""; position:absolute; inset:0; border-radius:var(--radius);
+      background:
+        radial-gradient(900px 550px at 15% 15%, rgba(255,255,255,0.65), transparent 60%),
+        radial-gradient(900px 550px at 85% 20%, rgba(255,255,255,0.50), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.18));
+      pointer-events:none;
+    }
+    #stage{position:relative; width:100%; height:720px; display:block; border-radius:var(--radius); touch-action:none; z-index:2;}
+    #fx{position:absolute; inset:0; width:100%; height:100%; border-radius:var(--radius); pointer-events:none; z-index:4;}
+
+    .pillRow{
+      position:absolute; inset:12px 12px auto 12px;
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between;
+      pointer-events:none; z-index:5;
+    }
+    .pill{
+      pointer-events:auto;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(8,12,24,0.12);
+      background: rgba(255,255,255,0.92);
+      font-size:12px; color: var(--muted); font-weight:1000;
+    }
+    .pill strong{color:var(--text)}
+
+    .label{font-size:12px; color:var(--muted); font-weight:1000}
+    input{
+      width:100%; border:1px solid var(--line); border-radius:12px;
+      padding:10px 12px; font-weight:1000; outline:none; background:#fff; font-size:16px;
+    }
+    input:focus{border-color: rgba(40,200,120,0.60); box-shadow: 0 0 0 4px rgba(40,200,120,0.16)}
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .btn.primary{background:linear-gradient(180deg, rgba(255,190,90,0.30), rgba(255,190,90,0.14)); border-color: rgba(255,190,90,0.60);}
+    .btn.good{background:linear-gradient(180deg, rgba(40,200,120,0.22), rgba(40,200,120,0.10)); border-color: rgba(40,200,120,0.45);}
+    .btn.bad{background:linear-gradient(180deg, rgba(214,31,44,0.18), rgba(214,31,44,0.10)); border-color: rgba(214,31,44,0.40);}
+
+    .msg{margin-top:10px; padding:10px 12px; border-radius:16px; border:1px solid var(--line); background: rgba(8,12,24,0.03); font-weight:1000; display:none;}
+    .msg.good{border-color: rgba(40,200,120,0.40); background: rgba(40,200,120,0.14); color: rgba(0,110,70,1); display:block;}
+    .msg.bad{border-color: rgba(214,31,44,0.40); background: rgba(214,31,44,0.12); color: rgba(150,18,26,1); display:block;}
+
+    .list{margin-top:10px; border-top:1px solid var(--line); padding-top:10px; display:grid; gap:8px; max-height: 340px; overflow:auto;}
+    .chip{display:flex; justify-content:space-between; gap:10px; padding:10px 10px; border:1px solid rgba(8,12,24,0.10); border-radius:14px; background:rgba(255,255,255,0.88); font-weight:1000;}
+    .chip small{color:var(--muted); font-weight:1000}
+
+    .bar{height:12px; border-radius:999px; border:1px solid rgba(8,12,24,0.14); background:rgba(255,255,255,0.70); overflow:hidden;}
+    .fill{height:100%; width:0%; background: linear-gradient(90deg, rgba(40,200,120,0.85), rgba(255,190,90,0.85));}
+
+    footer{
+      position:relative; z-index:1;
+      text-align:center; padding: 10px 14px 16px;
+      color: rgba(8,12,24,0.55); font-weight:1000; letter-spacing:0.3px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div style="font-weight:1000; font-size:22px" id="title">Tower</div>
+      <div class="sub" id="sub">Clear the whole tower: Level 1→2→…→Ultimate Clear!</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap">
+      <button class="btn" id="back">⬅ Hub</button>
+      <button class="btn" id="resetTheme">Reset this theme</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card canvasWrap">
+      <div class="canvasBG" id="bg"></div>
+      <canvas id="stage"></canvas>
+      <canvas id="fx"></canvas>
+
+      <div class="pillRow">
+        <div class="pill">📚 Level <strong id="lvl">1</strong></div>
+        <div class="pill">🎯 Left <strong id="left">0</strong></div>
+        <div class="pill">⭐ Score <strong id="score">0</strong></div>
+        <div class="pill">🔥 Streak <strong id="streak">0</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Theme progress</div>
+      <div class="bar" style="margin-top:6px"><div class="fill" id="themeFill"></div></div>
+      <div class="label" style="margin-top:6px" id="themeTxt">0%</div>
+
+      <div class="label" style="margin-top:12px">Prompt</div>
+      <div style="font-weight:1000; margin-top:6px" id="prompt">—</div>
+      <div class="label" style="margin-top:6px" id="hint">Accents not required (ñ counts as n). Spaces allowed.</div>
+
+      <div style="margin-top:10px">
+        <div class="label">Type (or click blocks)</div>
+        <input id="typed" autocomplete="off" spellcheck="false" placeholder="Type here…" />
+      </div>
+
+      <div class="btnRow">
+        <button class="btn primary" id="submit">Submit</button>
+        <button class="btn" id="undo">Undo</button>
+        <button class="btn" id="clear">Clear</button>
+        <button class="btn good" id="shuffle">Shuffle Tower</button>
+        <button class="btn bad" id="hintBtn">Hint</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+
+      <div class="label" style="margin-top:12px">Words left (this level)</div>
+      <div class="list" id="list"></div>
+    </div>
+  </main>
+
+  <footer>© 2026 Synge Street Games Lab</footer>
+
+  <script type="module">
+    import { startTower } from "./game.js";
+    startTower();
+  </script>
+</body>
+</html>
