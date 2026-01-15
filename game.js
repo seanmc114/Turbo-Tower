@@ -1,3 +1,12 @@
+// game.js — JC Tower Compendium (FINAL, phone less fiddly)
+// - Bigger blocks on phones
+// - Less zoomed-out camera on phones
+// - Non-inverted rotation
+// - Undo, hint, shuffle
+// - Explode + disappear on correct (selected blocks)
+//
+// Requires: themes.js + tower.html + index.html (as previously provided)
+
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import {
   tileCoverCss,
@@ -65,6 +74,8 @@ export function startTower(){
   let remaining = [];
   let score = 0;
   let streak = 0;
+
+  // blocks the student clicked (for undo + explode removal)
   let selectedBlocks = [];
 
   function setMsg(text, kind){
@@ -94,7 +105,10 @@ export function startTower(){
     leftEl.textContent = String(remaining.length);
   }
   function setPrompt(){
-    if(!remaining.length){ promptEl.textContent = "Level complete!"; return; }
+    if(!remaining.length){
+      promptEl.textContent = "Level complete!";
+      return;
+    }
     const cur = remaining[0];
     promptEl.textContent = `Spell: ${cur.en}${isMixLevel(currentLevel) ? " (MIX)" : ""}`;
   }
@@ -122,7 +136,7 @@ export function startTower(){
     return arr;
   }
 
-  // FX Canvas confetti
+  // ---------- FX Canvas (confetti burst) ----------
   const fx = $("fx");
   const fxCtx = fx.getContext("2d");
   const confetti = [];
@@ -165,7 +179,7 @@ export function startTower(){
     }
   }
 
-  // THREE.js tower
+  // ---------- THREE.js tower ----------
   const stage = $("stage");
   const renderer = new THREE.WebGLRenderer({ canvas: stage, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -184,10 +198,10 @@ export function startTower(){
   const target = new THREE.Vector3(0, 2.4, 0);
   const isPhone = ()=> window.matchMedia && window.matchMedia("(max-width: 520px)").matches;
 
-  // ✅ phone “zoomed in” fix:
-  let radius = isPhone() ? 34 : 25;                   // zoom OUT on phones
+  // ✅ phone zoom fix (less zoomed out than before)
+  let radius = isPhone() ? 28 : 25;
   let theta = Math.PI * 0.25;
-  let phi   = isPhone() ? Math.PI * 0.36 : Math.PI * 0.28;  // a touch more top-down on phones
+  let phi   = isPhone() ? Math.PI * 0.34 : Math.PI * 0.28;
 
   const phiMin = Math.PI * 0.10;
   const phiMax = Math.PI * 0.78;
@@ -207,10 +221,10 @@ export function startTower(){
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
+  // ✅ less fiddly: bigger blocks on phone (same as desktop), slightly smaller grid
   function getDims(){
-    // ✅ smaller blocks + smaller grid on phone
     return isPhone()
-      ? { GRID:6, HEIGHT:6, SIZE:1.00, GAP:0.13 }
+      ? { GRID:6, HEIGHT:6, SIZE:1.22, GAP:0.14 }   // ✅ bigger blocks on phone
       : { GRID:7, HEIGHT:7, SIZE:1.22, GAP:0.14 };
   }
 
@@ -398,14 +412,18 @@ export function startTower(){
     renderer.setSize(w,h,false);
     camera.aspect = w/h;
     camera.updateProjectionMatrix();
+
     const dpr = window.devicePixelRatio || 1;
     fx.width = Math.floor(w*dpr);
     fx.height = Math.floor(h*dpr);
     fx.style.width = w+"px";
     fx.style.height = h+"px";
 
-    // keep phone zoom-out feeling if orientation changes
-    if(isPhone()){ radius = 34; phi = Math.max(phiMin, Math.min(phiMax, Math.PI*0.36)); }
+    // keep phone feel on orientation changes
+    if(isPhone()){
+      radius = 28;
+      phi = Math.max(phiMin, Math.min(phiMax, Math.PI*0.34));
+    }
   }
   window.addEventListener("resize", ()=>{ resize(); buildTower(); });
 
@@ -444,7 +462,10 @@ export function startTower(){
 
   function submit(){
     const raw = typed.value.trim();
-    if(!raw){ setMsg("Type an answer (or click blocks) first.", "bad"); return; }
+    if(!raw){
+      setMsg("Type an answer (or click blocks) first.", "bad");
+      return;
+    }
 
     const idx = remaining.findIndex(it => isCorrect(raw, it.answers));
     if(idx >= 0){
@@ -534,6 +555,7 @@ export function startTower(){
     renderer.setSize(w,h,false);
     camera.aspect = w/h;
     camera.updateProjectionMatrix();
+
     const dpr = window.devicePixelRatio || 1;
     fx.width = Math.floor(w*dpr);
     fx.height = Math.floor(h*dpr);
@@ -545,6 +567,6 @@ export function startTower(){
   animate();
   loadLevel(currentLevel);
 
-  // progress init
+  // ensure progress exists
   saveProgress(LANG, THEME_ID, { level: currentLevel });
 }
