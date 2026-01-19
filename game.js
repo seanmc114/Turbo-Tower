@@ -1,11 +1,4 @@
-// game.js — JC Tower Compendium (FINAL, phone less fiddly)
-// - Bigger blocks on phones
-// - Less zoomed-out camera on phones
-// - Non-inverted rotation
-// - Undo, hint, shuffle
-// - Explode + disappear on correct (selected blocks)
-//
-// Requires: themes.js + tower.html + index.html (as previously provided)
+// game.js — JC Tower Compendium (Turbo Feedback, non-skip)
 
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import {
@@ -31,6 +24,7 @@ const LANG = (qs.get("lang") || localStorage.getItem("jc_tower_lang") || "es").t
 const THEME_ID = (qs.get("theme") || "family").toLowerCase();
 
 export function startTower(){
+  // UI
   const titleEl = $("title");
   const bgEl = $("bg");
   const backBtn = $("back");
@@ -52,6 +46,18 @@ export function startTower(){
   const clearBtn = $("clear");
   const shuffleBtn = $("shuffle");
   const hintBtn = $("hintBtn");
+  const feedbackBtn = $("feedbackBtn");
+
+  // Feedback modal UI
+  const levelModal = $("levelModal");
+  const fbTitle = $("fbTitle");
+  const fbSub = $("fbSub");
+  const fbStats = $("fbStats");
+  const fbMissed = $("fbMissed");
+  const fbMissedCount = $("fbMissedCount");
+  const fbNext = $("fbNext");
+  const fbBack = $("fbBack");
+  const fbContinue = $("fbContinue");
 
   titleEl.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()}`;
   bgEl.style.backgroundImage = tileCoverCss(THEME_ID);
@@ -63,6 +69,17 @@ export function startTower(){
       location.reload();
     }
   });
+  fbBack.addEventListener("click", ()=> location.href = "index.html");
+
+  function openFeedbackModal(){
+    levelModal.classList.add("show");
+    levelModal.setAttribute("aria-hidden", "false");
+  }
+  function closeFeedbackModal(){
+    levelModal.classList.remove("show");
+    levelModal.setAttribute("aria-hidden", "true");
+  }
+  fbContinue.addEventListener("click", closeFeedbackModal);
 
   const maxLevel = maxLevelFor(LANG, THEME_ID);
   const isMixLevel = (lvl)=> (lvl % 4 === 0);
@@ -74,9 +91,11 @@ export function startTower(){
   let remaining = [];
   let score = 0;
   let streak = 0;
-
-  // blocks the student clicked (for undo + explode removal)
   let selectedBlocks = [];
+
+  // Turbo feedback stats per level
+  let levelStats = new Map();     // key=en
+  let levelEntries = [];          // entries in this level
 
   function setMsg(text, kind){
     msg.style.display = "block";
@@ -130,7 +149,7 @@ export function startTower(){
 
   function shuffle(arr){
     for(let i=arr.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
+      const j = Math.floor(Math.random()* (i+1));
       [arr[i],arr[j]]=[arr[j],arr[i]];
     }
     return arr;
@@ -198,7 +217,6 @@ export function startTower(){
   const target = new THREE.Vector3(0, 2.4, 0);
   const isPhone = ()=> window.matchMedia && window.matchMedia("(max-width: 520px)").matches;
 
-  // ✅ phone zoom fix (less zoomed out than before)
   let radius = isPhone() ? 28 : 25;
   let theta = Math.PI * 0.25;
   let phi   = isPhone() ? Math.PI * 0.34 : Math.PI * 0.28;
@@ -221,10 +239,9 @@ export function startTower(){
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  // ✅ less fiddly: bigger blocks on phone (same as desktop), slightly smaller grid
   function getDims(){
     return isPhone()
-      ? { GRID:6, HEIGHT:6, SIZE:1.22, GAP:0.14 }   // ✅ bigger blocks on phone
+      ? { GRID:6, HEIGHT:6, SIZE:1.22, GAP:0.14 }
       : { GRID:7, HEIGHT:7, SIZE:1.22, GAP:0.14 };
   }
 
@@ -293,7 +310,6 @@ export function startTower(){
     selectedBlocks = [];
   }
 
-  // ✅ explode + remove
   function explodeAndRemove(blocks){
     if(!blocks?.length) return;
     const rect = stage.getBoundingClientRect();
@@ -365,14 +381,13 @@ export function startTower(){
       }
     }
 
-    // tower shrinks as levels progress
     const t = (currentLevel - 1) / Math.max(1,(maxLevel-1));
     const scale = 1.07 - t * 0.36;
     blockGroup.scale.set(scale, scale, scale);
     blockGroup.position.y = -0.10 * (1 - scale);
   }
 
-  // ✅ rotation NOT inverted
+  // rotation NOT inverted
   let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener("pointerdown",(e)=>{
     dragging=true; moved=0;
@@ -419,7 +434,6 @@ export function startTower(){
     fx.style.width = w+"px";
     fx.style.height = h+"px";
 
-    // keep phone feel on orientation changes
     if(isPhone()){
       radius = 28;
       phi = Math.max(phiMin, Math.min(phiMax, Math.PI*0.34));
@@ -434,6 +448,74 @@ export function startTower(){
     renderFX();
   }
 
+  // ---- TURBO FEEDBACK: build stats + show anytime ----
+  function buildLevelStats(entries){
+    levelStats = new Map();
+    for(const it of entries){
+      levelStats.set(it.en, {
+        en: it.en,
+        answers: it.answers,
+        attempts: 0,
+        wrong: [],
+        gotItEventually: false
+      });
+    }
+  }
+
+  function showFeedback(){
+    const all = Array.from(levelStats.values());
+    const total = all.length;
+
+    const firstTry = all.filter(s=>s.gotItEventually && s.attempts === 1).length;
+    const mistakes = all.reduce((acc,s)=> acc + s.wrong.length, 0);
+
+    // include “unanswered”
+    const unanswered = all.filter(s=>!s.gotItEventually);
+    const struggled = all.filter(s=>s.gotItEventually && (s.wrong.length > 0 || s.attempts > 1));
+    const improve = [...struggled, ...unanswered];
+
+    fbTitle.textContent = `Feedback · Level ${currentLevel}${isMixLevel(currentLevel) ? " (MIX)" : ""}`;
+    fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()}`;
+
+    fbStats.innerHTML = `
+      <div class="stat"><div class="k">Score</div><div class="v">${score}</div></div>
+      <div class="stat"><div class="k">Words in level</div><div class="v">${total}</div></div>
+      <div class="stat"><div class="k">First-try</div><div class="v">${firstTry}</div></div>
+      <div class="stat"><div class="k">Mistakes</div><div class="v">${mistakes}</div></div>
+    `;
+
+    fbMissed.innerHTML = "";
+    fbMissedCount.textContent = `${improve.length} item${improve.length===1?"":"s"}`;
+
+    if(improve.length === 0){
+      fbMissed.innerHTML = `<div class="rowItem"><div><span class="pillGood">Perfect round</span></div><div class="muted">Nothing to improve.</div><div></div></div>`;
+    } else {
+      for(const s of improve){
+        const correct = (s.answers && s.answers.length) ? s.answers[0] : "—";
+        const wrongUnique = Array.from(new Set(s.wrong.map(w=>w.trim()).filter(Boolean))).slice(0,4);
+        const wrongTxt = wrongUnique.length ? wrongUnique.join(", ") : "—";
+        const badge = s.gotItEventually ? `<span class="pillBad">Needed tries</span>` : `<span class="pillBad">Unanswered</span>`;
+        fbMissed.innerHTML += `
+          <div class="rowItem">
+            <div>${s.en}<div class="muted">Attempts: ${s.attempts}</div>${badge}</div>
+            <div><span class="pillGood">Correct:</span> ${correct}</div>
+            <div><span class="pillBad">You typed:</span> ${wrongTxt}</div>
+          </div>
+        `;
+      }
+    }
+
+    // NEXT LEVEL only if remaining is empty
+    fbNext.style.display = (remaining.length === 0 && currentLevel < maxLevel) ? "inline-block" : "none";
+
+    openFeedbackModal();
+  }
+
+  feedbackBtn.addEventListener("click", showFeedback);
+  window.addEventListener("keydown",(e)=>{
+    if(e.key === "Escape" && levelModal.classList.contains("show")) closeFeedbackModal();
+  });
+
   function loadLevel(lvl){
     currentLevel = Math.max(1, Math.min(maxLevel, lvl));
     lvlEl.textContent = String(currentLevel) + (isMixLevel(currentLevel) ? " (MIX)" : "");
@@ -441,7 +523,11 @@ export function startTower(){
     typed.value = "";
     clearSelection();
 
-    remaining = shuffle(getLevelEntries(LANG, THEME_ID, currentLevel, isMixLevel(currentLevel)));
+    levelEntries = shuffle(getLevelEntries(LANG, THEME_ID, currentLevel, isMixLevel(currentLevel)));
+    remaining = [...levelEntries];
+
+    buildLevelStats(levelEntries);
+
     renderList();
     setPrompt();
     buildTower();
@@ -460,6 +546,11 @@ export function startTower(){
     loadLevel(currentLevel);
   }
 
+  fbNext.addEventListener("click", ()=>{
+    closeFeedbackModal();
+    advanceLevel();
+  });
+
   function submit(){
     const raw = typed.value.trim();
     if(!raw){
@@ -467,9 +558,21 @@ export function startTower(){
       return;
     }
 
+    // log attempt against CURRENT prompt
+    const promptTarget = remaining[0];
+    if(promptTarget && levelStats.has(promptTarget.en)){
+      levelStats.get(promptTarget.en).attempts += 1;
+    }
+
     const idx = remaining.findIndex(it => isCorrect(raw, it.answers));
     if(idx >= 0){
       const matched = remaining.splice(idx, 1)[0];
+
+      if(levelStats.has(matched.en)){
+        const s = levelStats.get(matched.en);
+        if(s.attempts === 0) s.attempts = 1;
+        s.gotItEventually = true;
+      }
 
       const pts = scoreFor(matched.answers[0]);
       score += pts;
@@ -495,10 +598,13 @@ export function startTower(){
       renderThemeProgress();
 
       if(remaining.length === 0){
-        setMsg(`🎉 Level ${currentLevel} cleared! Moving on…`, "good");
-        setTimeout(()=> advanceLevel(), 720);
+        setTimeout(()=> showFeedback(), 450);
       }
       return;
+    }
+
+    if(promptTarget && levelStats.has(promptTarget.en)){
+      levelStats.get(promptTarget.en).wrong.push(raw);
     }
 
     streak = 0;
@@ -547,7 +653,6 @@ export function startTower(){
     if(e.key==="Escape"){ typed.value=""; clearSelection(); clearMsg(); }
   });
 
-  // boot
   function bootResize(){
     const rect = stage.getBoundingClientRect();
     const w = Math.max(320, Math.floor(rect.width));
@@ -562,11 +667,10 @@ export function startTower(){
     fx.style.width = w+"px";
     fx.style.height = h+"px";
   }
+
   bootResize();
   updateCamera();
   animate();
   loadLevel(currentLevel);
-
-  // ensure progress exists
   saveProgress(LANG, THEME_ID, { level: currentLevel });
 }
