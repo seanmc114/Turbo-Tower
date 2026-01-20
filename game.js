@@ -42,16 +42,13 @@ function setLives(n){
 }
 
 function maskAnswer(ans){
-  // first letter + bullets, spaces ignored for length
-  const s = String(ans || "");
-  const letters = norm(s).replace(/ /g,"");
+  const letters = norm(String(ans || "")).replace(/ /g,"");
   const len = letters.length;
   const first = letters[0] ? letters[0].toUpperCase() : "";
   return `${first}${"•".repeat(Math.max(0, len-1))}  (len ${len})`;
 }
 
 export function startTower(){
-  // UI
   const titleEl = $("title");
   const bgEl = $("bg");
   const backBtn = $("back");
@@ -77,7 +74,6 @@ export function startTower(){
   const hintBtn = $("hintBtn");
   const feedbackBtn = $("feedbackBtn");
 
-  // Feedback modal UI
   const levelModal = $("levelModal");
   const fbTitle = $("fbTitle");
   const fbSub = $("fbSub");
@@ -116,14 +112,12 @@ export function startTower(){
 
   let prog = themeProgress(LANG, THEME_ID);
   let currentLevel = Math.min(Math.max(1, prog.level), maxLevel);
-  let clearedCount = prog.cleared;
 
   let remaining = [];
   let score = 0;
   let streak = 0;
   let selectedBlocks = [];
 
-  // per-level tracking
   let levelStats = new Map(); // key=en
   let levelEntries = [];
   let feedbackUsedThisLevel = 0;
@@ -193,7 +187,7 @@ export function startTower(){
     return arr;
   }
 
-  // ---------- FX Canvas (confetti burst) ----------
+  // ---------- FX Canvas ----------
   const fx = $("fx");
   const fxCtx = fx.getContext("2d");
   const confetti = [];
@@ -425,7 +419,7 @@ export function startTower(){
     blockGroup.position.y = -0.10 * (1 - scale);
   }
 
-  // rotation NOT inverted
+  // rotation
   let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener("pointerdown",(e)=>{
     dragging=true; moved=0;
@@ -486,17 +480,10 @@ export function startTower(){
     renderFX();
   }
 
-  // ---- FEEDBACK DATA ----
   function buildLevelStats(entries){
     levelStats = new Map();
     for(const it of entries){
-      levelStats.set(it.en, {
-        en: it.en,
-        answers: it.answers,
-        attempts: 0,
-        wrong: [],
-        gotItEventually: false
-      });
+      levelStats.set(it.en, { en: it.en, answers: it.answers, attempts: 0, wrong: [], gotItEventually: false });
     }
   }
 
@@ -514,7 +501,6 @@ export function startTower(){
   function showFeedback({revealFull, fromClear}){
     const all = Array.from(levelStats.values());
     const total = all.length;
-
     const firstTry = all.filter(s=>s.gotItEventually && s.attempts === 1).length;
     const mistakes = all.reduce((acc,s)=> acc + s.wrong.length, 0);
 
@@ -535,11 +521,9 @@ export function startTower(){
     fbMissed.innerHTML = "";
     fbMissedCount.textContent = `${improve.length} item${improve.length===1?"":"s"}`;
 
-    if(revealFull){
-      fbRuleLine.textContent = "Level cleared — full Turbo corrections shown.";
-    } else {
-      fbRuleLine.textContent = "Mid-level feedback: answers are hidden (clues only). Clear the level for full corrections.";
-    }
+    fbRuleLine.textContent = revealFull
+      ? "Level cleared — full Turbo corrections shown."
+      : "Mid-level feedback: answers are hidden (clues only). Clear the level for full corrections.";
 
     if(improve.length === 0){
       fbMissed.innerHTML = `<div class="rowItem"><div><span class="pillGood">Perfect round</span></div><div class="muted">Nothing to improve.</div><div></div></div>`;
@@ -548,42 +532,34 @@ export function startTower(){
         const correct = (s.answers && s.answers.length) ? s.answers[0] : "—";
         const wrongUnique = Array.from(new Set(s.wrong.map(w=>w.trim()).filter(Boolean))).slice(0,4);
         const wrongTxt = wrongUnique.length ? wrongUnique.join(", ") : "—";
-
-        const correctShown = revealFull
-          ? correct
-          : (s.gotItEventually ? maskAnswer(correct) : "Hidden (finish level)");
-
+        const shown = revealFull ? correct : (s.gotItEventually ? maskAnswer(correct) : "Hidden (finish level)");
         const badge = s.gotItEventually ? `<span class="pillBad">Needed tries</span>` : `<span class="pillBad">Unanswered</span>`;
 
         fbMissed.innerHTML += `
           <div class="rowItem">
             <div>${s.en}<div class="muted">Attempts: ${s.attempts}</div>${badge}</div>
-            <div><span class="pillGood">${revealFull ? "Correct:" : "Clue:"}</span> ${correctShown}</div>
+            <div><span class="pillGood">${revealFull ? "Correct:" : "Clue:"}</span> ${shown}</div>
             <div><span class="pillBad">You typed:</span> ${wrongTxt}</div>
           </div>
         `;
       }
     }
 
-    // Next only when cleared
     fbNext.style.display = (remaining.length === 0 && currentLevel < maxLevel) ? "inline-block" : "none";
 
-    // Perfect reward: +1 life (max 5)
     if(fromClear && isPerfectLevel()){
       const before = getLives();
       const after = setLives(before + 1);
       updateLivesUI();
-      if(after > before){
-        fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! +1 life (${after}/${MAX_LIVES})`;
-      } else {
-        fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! Lives already max (${after}/${MAX_LIVES})`;
-      }
+      fbSub.textContent = after > before
+        ? `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! +1 life (${after}/${MAX_LIVES})`
+        : `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! Lives already max (${after}/${MAX_LIVES})`;
     }
 
     openFeedbackModal();
   }
 
-  // Mid-level feedback: costs 1 life
+  // mid-level feedback costs 1 life
   feedbackBtn.addEventListener("click", ()=>{
     if(remaining.length === 0){
       showFeedback({revealFull:true, fromClear:false});
@@ -668,9 +644,6 @@ export function startTower(){
       streak += 1;
       scoreEl.textContent = String(score);
       streakEl.textContent = String(streak);
-
-      clearedCount += 1;
-      saveProgress(LANG, THEME_ID, { cleared: clearedCount });
 
       setMsg(`✅ Correct (${matched.en}) +${pts}`, "good");
 
@@ -763,5 +736,4 @@ export function startTower(){
   updateCamera();
   animate();
   loadLevel(currentLevel);
-  saveProgress(LANG, THEME_ID, { level: currentLevel });
 }
