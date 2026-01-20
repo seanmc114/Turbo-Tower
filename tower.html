@@ -240,6 +240,11 @@
       <div class="bar" style="margin-top:6px"><div class="fill" id="themeFill"></div></div>
       <div class="label" style="margin-top:6px" id="themeTxt">0%</div>
 
+      <div class="label" style="margin-top:10px">
+        Feedback lives: <strong id="lives">5</strong>/5
+        <span class="muted"> · perfect level earns +1 life</span>
+      </div>
+
       <div class="label" style="margin-top:12px">Prompt</div>
       <div style="font-weight:1000; margin-top:6px" id="prompt">—</div>
       <div class="label" style="margin-top:6px">Accents not required (ñ counts as n). Spaces allowed.</div>
@@ -277,13 +282,15 @@
 
         <div class="missed">
           <div class="missedHead">
-            <div>Words to improve (incl. unanswered)</div>
+            <div>Words to improve (this level only)</div>
             <div class="muted" id="fbMissedCount">0 items</div>
           </div>
           <div class="missedList" id="fbMissed"></div>
         </div>
 
-        <div class="muted">Tip: hit “Continue” to go back and finish the level. Next Level only unlocks once the level is cleared.</div>
+        <div class="muted" id="fbRuleLine">
+          Mid-level feedback shows clues only. Clear the level to see full corrections.
+        </div>
       </div>
       <div class="modalBtns">
         <button class="btn" id="fbContinue">Continue Level</button>
