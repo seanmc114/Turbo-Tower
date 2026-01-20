@@ -1,4 +1,8 @@
-// game.js — JC Tower Compendium (Turbo Feedback, non-skip)
+// game.js — JC Tower Compendium
+// Turbo Feedback with GLOBAL lives (5) across the entire game
+// - Mid-level feedback costs 1 life and does NOT reveal full answers
+// - Level-cleared feedback shows full corrections (free)
+// - Perfect level earns +1 life (max 5)
 
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import {
@@ -23,6 +27,29 @@ const qs = new URLSearchParams(location.search);
 const LANG = (qs.get("lang") || localStorage.getItem("jc_tower_lang") || "es").toLowerCase();
 const THEME_ID = (qs.get("theme") || "family").toLowerCase();
 
+const MAX_LIVES = 5;
+const LIVES_KEY = "jc_feedback_lives";
+
+function getLives(){
+  const raw = localStorage.getItem(LIVES_KEY);
+  const n = raw == null ? MAX_LIVES : parseInt(raw, 10);
+  return Number.isFinite(n) ? Math.max(0, Math.min(MAX_LIVES, n)) : MAX_LIVES;
+}
+function setLives(n){
+  const v = Math.max(0, Math.min(MAX_LIVES, n));
+  localStorage.setItem(LIVES_KEY, String(v));
+  return v;
+}
+
+function maskAnswer(ans){
+  // first letter + bullets, spaces ignored for length
+  const s = String(ans || "");
+  const letters = norm(s).replace(/ /g,"");
+  const len = letters.length;
+  const first = letters[0] ? letters[0].toUpperCase() : "";
+  return `${first}${"•".repeat(Math.max(0, len-1))}  (len ${len})`;
+}
+
 export function startTower(){
   // UI
   const titleEl = $("title");
@@ -36,6 +63,8 @@ export function startTower(){
   const streakEl = $("streak");
   const themeFill = $("themeFill");
   const themeTxt = $("themeTxt");
+  const livesEl = $("lives");
+
   const promptEl = $("prompt");
   const typed = $("typed");
   const msg = $("msg");
@@ -58,6 +87,7 @@ export function startTower(){
   const fbNext = $("fbNext");
   const fbBack = $("fbBack");
   const fbContinue = $("fbContinue");
+  const fbRuleLine = $("fbRuleLine");
 
   titleEl.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()}`;
   bgEl.style.backgroundImage = tileCoverCss(THEME_ID);
@@ -93,9 +123,18 @@ export function startTower(){
   let streak = 0;
   let selectedBlocks = [];
 
-  // Turbo feedback stats per level
-  let levelStats = new Map();     // key=en
-  let levelEntries = [];          // entries in this level
+  // per-level tracking
+  let levelStats = new Map(); // key=en
+  let levelEntries = [];
+  let feedbackUsedThisLevel = 0;
+  let hintUsedThisLevel = 0;
+
+  function updateLivesUI(){
+    const lives = getLives();
+    livesEl.textContent = String(lives);
+    feedbackBtn.textContent = `Feedback (${lives})`;
+  }
+  updateLivesUI();
 
   function setMsg(text, kind){
     msg.style.display = "block";
@@ -146,10 +185,9 @@ export function startTower(){
       return typedN === aN || typedNoSpace === aNoSpace;
     });
   }
-
   function shuffle(arr){
     for(let i=arr.length-1;i>0;i--){
-      const j = Math.floor(Math.random()* (i+1));
+      const j = Math.floor(Math.random()*(i+1));
       [arr[i],arr[j]]=[arr[j],arr[i]];
     }
     return arr;
@@ -448,7 +486,7 @@ export function startTower(){
     renderFX();
   }
 
-  // ---- TURBO FEEDBACK: build stats + show anytime ----
+  // ---- FEEDBACK DATA ----
   function buildLevelStats(entries){
     levelStats = new Map();
     for(const it of entries){
@@ -462,30 +500,46 @@ export function startTower(){
     }
   }
 
-  function showFeedback(){
+  function isPerfectLevel(){
+    for(const s of levelStats.values()){
+      if(!s.gotItEventually) return false;
+      if(s.attempts !== 1) return false;
+      if(s.wrong.length) return false;
+    }
+    if(hintUsedThisLevel > 0) return false;
+    if(feedbackUsedThisLevel > 0) return false;
+    return true;
+  }
+
+  function showFeedback({revealFull, fromClear}){
     const all = Array.from(levelStats.values());
     const total = all.length;
 
     const firstTry = all.filter(s=>s.gotItEventually && s.attempts === 1).length;
     const mistakes = all.reduce((acc,s)=> acc + s.wrong.length, 0);
 
-    // include “unanswered”
     const unanswered = all.filter(s=>!s.gotItEventually);
     const struggled = all.filter(s=>s.gotItEventually && (s.wrong.length > 0 || s.attempts > 1));
     const improve = [...struggled, ...unanswered];
 
     fbTitle.textContent = `Feedback · Level ${currentLevel}${isMixLevel(currentLevel) ? " (MIX)" : ""}`;
-    fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()}`;
+    fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · Lives: ${getLives()}/${MAX_LIVES}`;
 
     fbStats.innerHTML = `
       <div class="stat"><div class="k">Score</div><div class="v">${score}</div></div>
-      <div class="stat"><div class="k">Words in level</div><div class="v">${total}</div></div>
+      <div class="stat"><div class="k">Words</div><div class="v">${total}</div></div>
       <div class="stat"><div class="k">First-try</div><div class="v">${firstTry}</div></div>
       <div class="stat"><div class="k">Mistakes</div><div class="v">${mistakes}</div></div>
     `;
 
     fbMissed.innerHTML = "";
     fbMissedCount.textContent = `${improve.length} item${improve.length===1?"":"s"}`;
+
+    if(revealFull){
+      fbRuleLine.textContent = "Level cleared — full Turbo corrections shown.";
+    } else {
+      fbRuleLine.textContent = "Mid-level feedback: answers are hidden (clues only). Clear the level for full corrections.";
+    }
 
     if(improve.length === 0){
       fbMissed.innerHTML = `<div class="rowItem"><div><span class="pillGood">Perfect round</span></div><div class="muted">Nothing to improve.</div><div></div></div>`;
@@ -494,24 +548,63 @@ export function startTower(){
         const correct = (s.answers && s.answers.length) ? s.answers[0] : "—";
         const wrongUnique = Array.from(new Set(s.wrong.map(w=>w.trim()).filter(Boolean))).slice(0,4);
         const wrongTxt = wrongUnique.length ? wrongUnique.join(", ") : "—";
+
+        const correctShown = revealFull
+          ? correct
+          : (s.gotItEventually ? maskAnswer(correct) : "Hidden (finish level)");
+
         const badge = s.gotItEventually ? `<span class="pillBad">Needed tries</span>` : `<span class="pillBad">Unanswered</span>`;
+
         fbMissed.innerHTML += `
           <div class="rowItem">
             <div>${s.en}<div class="muted">Attempts: ${s.attempts}</div>${badge}</div>
-            <div><span class="pillGood">Correct:</span> ${correct}</div>
+            <div><span class="pillGood">${revealFull ? "Correct:" : "Clue:"}</span> ${correctShown}</div>
             <div><span class="pillBad">You typed:</span> ${wrongTxt}</div>
           </div>
         `;
       }
     }
 
-    // NEXT LEVEL only if remaining is empty
+    // Next only when cleared
     fbNext.style.display = (remaining.length === 0 && currentLevel < maxLevel) ? "inline-block" : "none";
+
+    // Perfect reward: +1 life (max 5)
+    if(fromClear && isPerfectLevel()){
+      const before = getLives();
+      const after = setLives(before + 1);
+      updateLivesUI();
+      if(after > before){
+        fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! +1 life (${after}/${MAX_LIVES})`;
+      } else {
+        fbSub.textContent = `${getThemeTitle(THEME_ID)} · ${LANG.toUpperCase()} · PERFECT! Lives already max (${after}/${MAX_LIVES})`;
+      }
+    }
 
     openFeedbackModal();
   }
 
-  feedbackBtn.addEventListener("click", showFeedback);
+  // Mid-level feedback: costs 1 life
+  feedbackBtn.addEventListener("click", ()=>{
+    if(remaining.length === 0){
+      showFeedback({revealFull:true, fromClear:false});
+      return;
+    }
+    const lives = getLives();
+    if(lives <= 0){
+      setMsg("No feedback lives left. Earn +1 by a PERFECT level (no wrongs, no hints, no feedback).", "bad");
+      return;
+    }
+    setLives(lives - 1);
+    feedbackUsedThisLevel += 1;
+    updateLivesUI();
+    showFeedback({revealFull:false, fromClear:false});
+  });
+
+  fbNext.addEventListener("click", ()=>{
+    closeFeedbackModal();
+    advanceLevel();
+  });
+
   window.addEventListener("keydown",(e)=>{
     if(e.key === "Escape" && levelModal.classList.contains("show")) closeFeedbackModal();
   });
@@ -523,9 +616,11 @@ export function startTower(){
     typed.value = "";
     clearSelection();
 
+    feedbackUsedThisLevel = 0;
+    hintUsedThisLevel = 0;
+
     levelEntries = shuffle(getLevelEntries(LANG, THEME_ID, currentLevel, isMixLevel(currentLevel)));
     remaining = [...levelEntries];
-
     buildLevelStats(levelEntries);
 
     renderList();
@@ -546,11 +641,6 @@ export function startTower(){
     loadLevel(currentLevel);
   }
 
-  fbNext.addEventListener("click", ()=>{
-    closeFeedbackModal();
-    advanceLevel();
-  });
-
   function submit(){
     const raw = typed.value.trim();
     if(!raw){
@@ -558,7 +648,6 @@ export function startTower(){
       return;
     }
 
-    // log attempt against CURRENT prompt
     const promptTarget = remaining[0];
     if(promptTarget && levelStats.has(promptTarget.en)){
       levelStats.get(promptTarget.en).attempts += 1;
@@ -598,7 +687,7 @@ export function startTower(){
       renderThemeProgress();
 
       if(remaining.length === 0){
-        setTimeout(()=> showFeedback(), 450);
+        setTimeout(()=> showFeedback({revealFull:true, fromClear:true}), 450);
       }
       return;
     }
@@ -625,6 +714,8 @@ export function startTower(){
   function useHint(){
     const cur = remaining[0];
     if(!cur) return;
+    hintUsedThisLevel += 1;
+
     streak = 0; streakEl.textContent = "0";
     score = Math.max(0, score - 80);
     scoreEl.textContent = String(score);
